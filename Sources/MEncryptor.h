@@ -74,6 +74,9 @@ class MEncryptor : public QTabWidget
           unsigned short int e_Shift ();
           unsigned short int d_Shift ();
 
+          unsigned short int e_Braille ();
+          unsigned short int d_Braille ();
+
 
         void outputHandling (bool);
 

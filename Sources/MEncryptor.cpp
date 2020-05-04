@@ -101,7 +101,7 @@ void MEncryptor::initEncryptor ()
 
 void MEncryptor::initProtocols ()
 {
-    std::ifstream protocolsList ("Protocols/Protocols.pastouche");
+    std::ifstream protocolsList (std::string ("Protocols/Protocols ") + std::string (language) + ".pastouche");
     std::string protocolName;
 
     for (unsigned int i = 1 ; getline (protocolsList, protocolName) ; i++)
@@ -259,6 +259,12 @@ unsigned short int MEncryptor::protocolCallBack_1 (bool encrypt, unsigned int pr
             return e_Shift ();
 
         return d_Shift ();
+
+    case 6:
+        if (encrypt)
+            return e_Braille ();
+
+        return d_Braille ();
 
     default:
         break;
@@ -477,6 +483,54 @@ unsigned short int MEncryptor::d_Shift ()
     }
     else
         return 42;
+
+    return 0;
+}
+
+
+//////////////  Leet Speak
+
+
+unsigned short int MEncryptor::e_Braille ()
+{
+    std::ifstream protocolDatStream ("Protocols/Braille/Dictionary.mt_data");
+
+    if (!protocolDatStream)
+        return 1;
+
+    std::string sDict, sBrailleDict;
+    getline (protocolDatStream, sDict);
+    getline (protocolDatStream, sBrailleDict);
+
+    QString dict = QString::fromStdString (sDict);
+    QStringList brailleDict = QString::fromStdString (sBrailleDict).split (" ");
+
+
+    output = output.toLower ();
+
+    for (unsigned short int i = 0 ; i != dict.length () ; i++)
+        output = output.replace (dict.at (i), brailleDict.at (i));
+
+    return 0;
+}
+
+unsigned short int MEncryptor::d_Braille ()
+{
+    std::ifstream protocolDatStream ("Protocols/Braille/Dictionary.mt_data");
+
+    if (!protocolDatStream)
+        return 1;
+
+    std::string sDict, sBrailleDict;
+    getline (protocolDatStream, sDict);
+    getline (protocolDatStream, sBrailleDict);
+
+    QString dict = QString::fromStdString (sDict);
+    QStringList brailleDict = QString::fromStdString (sBrailleDict).split (" ");
+
+
+    for (unsigned short int i = 0 ; i != dict.length () ; i++)
+        output = output.replace (brailleDict.at (i), dict.at (i));
 
     return 0;
 }
