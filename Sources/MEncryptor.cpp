@@ -13,25 +13,22 @@ MEncryptor::MEncryptor () : QTabWidget ()
     UIFont = QFont ("Ubuntu", 12);
 
 
-    language = "en";
-    std::ifstream languageStream ("language.pastouche");
-    if (languageStream)
-        languageStream>>language;
+    initOptions ();
 
     translator = new QTranslator;
-    translator->load("mencryptor_" + QString::fromStdString (language));
+    translator->load("mencryptor_" + QString::fromStdString (options.at (0)));
     qApp->installTranslator (translator);
 
-
-    processes.push_back (tr ("Encrypt"));
-    processes.push_back (tr ("Decrypt"));
+    messageBoxesTranslator = new QTranslator;
+    messageBoxesTranslator->load ("qtbase_" + QString::fromStdString (options.at (0)));
+    qApp->installTranslator (messageBoxesTranslator);
 
 
     initEncryptor ();  // Initialize Encryptor tab
     initOthers ();     // Initialize Help and Settings tab
 
-    setFont (UIFont);
 
+    qApp->setFont (UIFont);
 
     show ();
 
@@ -41,11 +38,28 @@ MEncryptor::MEncryptor () : QTabWidget ()
     setFixedSize (size ());
 }
 
+void MEncryptor::initOptions ()
+{
+    options.push_back ("en");
+    options.push_back ("Language : English");
+    options.push_back ("Leet Speak (1337)");
+
+    std::ifstream optionsStream ("Options.pastouche");
+
+    if (optionsStream)
+    {
+        std::string value;
+
+        for (unsigned short i = 0 ; i != 3 && getline (optionsStream, value) ; i++)
+            options[i] = value;
+    }
+}
+
 
 void MEncryptor::initEncryptor ()
 {
     encryptorTab = new QWidget;
-    addTab (encryptorTab, tr ("Encrypt / Decrypt messages"));
+    addTab (encryptorTab, tr("Encrypt / Decrypt messages"));
 
 
     inputBox = new QGroupBox ("Message");
@@ -62,15 +76,15 @@ void MEncryptor::initEncryptor ()
     processImage = new QLabel;
     processImage->setPixmap (QPixmap ("Process settings.png"));
 
-    chooseProcessLabel = new QLabel (tr ("Choose what to do :"));
 
-    processSelecter = new QPushButton (QIcon ("Closed Locker.png"), processes.at (0));
+    chooseProcessLabel = new QLabel (tr("Choose what to do :"));
+
+    processSelecter = new QPushButton (QIcon ("Closed Locker.png"), tr("Encrypt"));
     connect (processSelecter, SIGNAL (clicked ()), this, SLOT (setProcessText ()));
 
-    chooseProtocolLabel = new QLabel (tr ("Please select protocol :"));
 
-    protocolSelecter = new QComboBox;
     initProtocols ();
+
 
     processLayout->addWidget (processImage);
     processLayout->addWidget (chooseProcessLabel);
@@ -79,13 +93,13 @@ void MEncryptor::initEncryptor ()
     processLayout->addWidget (protocolSelecter);
 
 
-    outputBox = new QGroupBox (tr ("Output"));
+    outputBox = new QGroupBox (tr("Output"));
     outputBoxLayout = new QVBoxLayout (outputBox);
 
-    bDisplayOutput = new QPushButton (tr ("Translate now !"));
+    bDisplayOutput = new QPushButton (tr("Translate now !"));
     connect (bDisplayOutput, SIGNAL (clicked ()), this, SLOT (startProcessAndDisplay ()));
 
-    bSaveOutput = new QPushButton (tr ("Save translated message as..."));
+    bSaveOutput = new QPushButton (tr("Save translated message as..."));
     connect (bSaveOutput, SIGNAL (clicked ()), this, SLOT (startProcessAndSave ()));
 
     outputBoxLayout->addWidget (bDisplayOutput);
@@ -101,41 +115,49 @@ void MEncryptor::initEncryptor ()
 
 void MEncryptor::initProtocols ()
 {
-    std::ifstream protocolsList (std::string ("Protocols/Protocols ") + std::string (language) + ".pastouche");
+    chooseProtocolLabel = new QLabel (tr("Please select protocol :"));
+
+    protocolSelecter = new QComboBox;
+
+
+    std::ifstream protocolsList (std::string ("Protocols/Protocols ") + std::string (options.at (0)) + ".pastouche");
     std::string protocolName;
 
     for (unsigned int i = 1 ; getline (protocolsList, protocolName) ; i++)
         protocolSelecter->addItem (QString::fromStdString (protocolName), QVariant (i));
+
+
+    protocolSelecter->setCurrentText (QString::fromStdString (options.at (2)));
 }
 
 void MEncryptor::setProcessText ()
 {
-    unsigned short int processIndex = 0;
-    if (processSelecter->text () == processes[processIndex])
+    if (processSelecter->text () == tr("Encrypt"))
     {
         processSelecter->setIcon (QIcon ("Opened Locker.png"));
-        processIndex = 1;
+        processSelecter->setText (tr("Decrypt"));
     }
     else
+    {
         processSelecter->setIcon (QIcon ("Closed Locker.png"));
-
-    processSelecter->setText (processes[processIndex]);
+        processSelecter->setText (tr("Encrypt"));
+    }
 }
 
 void MEncryptor::initOthers ()
 {
     othersTab = new QWidget;
-    addTab (othersTab, tr ("Help and settings"));
+    addTab (othersTab, tr("Help and settings"));
     othersTabLayout = new QVBoxLayout (othersTab);
 
 
-    aboutMRecorderLabel = new QLabel (tr ("This opensource software was developed by NY4N_M4THS (MemeTech INC)<br/>"
-                                          "under <a href = 'https://gnu.org/licenses/lgpl-3.0.en.html'>license LGPLv3</a> with the framework Qt in C++ language.<br/>"
-                                          "Follow <a href = 'https://qt.io'>this link</a> to learn more about Qt.<br/>"
-                                          "You can also visit <a href = 'https://memetech-inc.weebly.com'>our website</a> to check for updates,<br/>"
-                                          "try other of our applications or ask for new features !<br/>"
-                                          "Click <a href = 'https://github.com/NyanMaths/MEncryptor'>here</a> to visit the GitHub page of the project.<br/><br/>"));
-    QFile errorsStream (QString ("Error Codes ") + QString::fromStdString (language) + ".pastouche");
+    aboutMRecorderLabel = new QLabel (tr("This opensource software was developed by NY4N_M4THS (MemeTech INC)<br/>"
+                                         "under <a href = 'https://gnu.org/licenses/lgpl-3.0.en.html'>license LGPLv3</a> with the framework Qt in C++ language.<br/>"
+                                         "Follow <a href = 'https://qt.io'>this link</a> to learn more about Qt.<br/>"
+                                         "You can also visit <a href = 'https://memetech-inc.weebly.com'>our website</a> to check for updates,<br/>"
+                                         "try other of our applications or ask for new features !<br/>"
+                                         "Click <a href = 'https://github.com/NyanMaths/MEncryptor'>here</a> to visit the GitHub page of the project.<br/><br/>"));
+    QFile errorsStream (QString ("Error Codes ") + QString::fromStdString (options.at (0)) + ".pastouche");
     if (errorsStream.open (QFile::ReadOnly))
         aboutMRecorderLabel->setText (aboutMRecorderLabel->text () + errorsStream.readAll ());
 
@@ -146,16 +168,10 @@ void MEncryptor::initOthers ()
 
     languageSelecter = new QComboBox;
 
-    if (language == "en")
-    {
-        languageSelecter->addItem ("Language : English", QVariant ("en"));
-        languageSelecter->addItem ("Langue : Français", QVariant ("fr"));
-    }
-    else
-    {
-        languageSelecter->addItem ("Langue : Français", QVariant ("fr"));
-        languageSelecter->addItem ("Language : English", QVariant ("en"));
-    }
+    languageSelecter->addItem ("Language : English", QVariant ("en"));
+    languageSelecter->addItem ("Langue : Français", QVariant ("fr"));
+
+    languageSelecter->setCurrentText (QString::fromStdString (options.at (1)));
 
     connect (languageSelecter, SIGNAL (currentIndexChanged (int)), this, SLOT (languageModified (int)));
 
@@ -166,28 +182,26 @@ void MEncryptor::initOthers ()
 
 void MEncryptor::languageModified (int)
 {
-    QMessageBox::Button clickedButton = QMessageBox::question (this, tr ("Language changed"), tr ("Do you want to restart the app now ?"));
+    QMessageBox::Button clickedButton = QMessageBox::question (this, tr("Language changed"), tr("Do you want to restart the app now ?"));
 
     if (clickedButton == QMessageBox::Yes)
-        restart ();
-}
-
-void MEncryptor::restart ()
-{
-    qApp->quit ();
-    QProcess::startDetached (qApp->arguments ()[0], qApp->arguments ());
+    {
+        qApp->quit ();
+        QProcess::startDetached (qApp->arguments ()[0], qApp->arguments ());
+    }
 }
 
 
 MEncryptor::~MEncryptor ()
 {
-    std::ofstream languageStream ("language.pastouche");
+    std::ofstream optionsStream ("Options.pastouche");
 
-    if (languageStream)
-        languageStream<<languageSelecter->currentData ().toString ().toStdString ();
-
-
-    qApp->quit ();
+    if (optionsStream)
+    {
+        optionsStream<<languageSelecter->currentData ().toString ().toStdString ()<<"\n"
+                     <<languageSelecter->currentText ().toStdString ()<<"\n"
+                     <<protocolSelecter->currentText ().toStdString ();
+    }
 }
 
 
@@ -212,7 +226,7 @@ void MEncryptor::chooseProcess (bool save)
         unsigned short int errorCode = 0;
 
         bool encrypt = true;
-        if (processSelecter->text () == processes.at (1))
+        if (processSelecter->text () == tr("Decrypt"))
             encrypt = false;
 
 
@@ -226,10 +240,10 @@ void MEncryptor::chooseProcess (bool save)
             outputHandling (save);
 
         else
-            QMessageBox::critical (this, tr ("Runtime error"), tr ("Error #") + QString::number (errorCode) + tr ("\nCheck in \"Help and settings\" tab to fix it !"));
+            QMessageBox::critical (this, tr("Runtime error"), tr("Error #") + QString::number (errorCode) + tr("\nCheck in \"Help and settings\" tab to fix it !"));
     }
     else
-        QMessageBox::warning (this, tr ("Little problem..."), tr ("You should enter something in the text area to translate !"));
+        QMessageBox::warning (this, tr("Little problem..."), tr("You should enter something in the text area to translate !"));
 }
 
 unsigned short int MEncryptor::protocolCallBack_1 (bool encrypt, unsigned int protocolCode)
@@ -266,6 +280,12 @@ unsigned short int MEncryptor::protocolCallBack_1 (bool encrypt, unsigned int pr
 
         return d_Braille ();
 
+    case 7:
+        if (encrypt)
+            return e_Values ();
+
+        return d_Values ();
+
     default:
         break;
     }
@@ -278,14 +298,14 @@ void MEncryptor::outputHandling (bool save)
 {
     if (save)
     {
-        QString destFileName = QFileDialog::getSaveFileName (this, tr ("Save translated file as..."), tr ("Untitled.txt"));
+        QString destFileName = QFileDialog::getSaveFileName (this, tr("Save translated file as..."), tr("Untitled.txt"));
 
         std::ofstream destFile (destFileName.toStdString ());
 
         if (destFileName != "")
         {
             destFile<<output.toStdString ();
-            QMessageBox::information (this, tr ("Operation successful, Houston !"), tr ("File ") + destFileName + tr (" saved !"));
+            QMessageBox::information (this, tr("Operation successful, Houston !"), tr("File ") + destFileName + tr(" saved !"));
         }
     }
     else
@@ -426,7 +446,7 @@ unsigned short int MEncryptor::e_Shift ()
     bool ok;
     QString dict ("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ");
 
-    int shift = QInputDialog::getInt (this, tr ("Shift cipher"), tr ("Please input the shift :"), 1, 1, 25, 1, &ok);
+    int shift = QInputDialog::getInt (this, tr("Shift cipher"), tr("Please input the shift :"), 1, 1, 25, 1, &ok);
 
 
     if (ok)
@@ -459,7 +479,7 @@ unsigned short int MEncryptor::d_Shift ()
     bool ok;
     QString dict ("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ");
 
-    int shift = QInputDialog::getInt (this, tr ("Shift decipher"), tr ("Please input the shift :"), 1, 1, 25, 1, &ok);
+    int shift = QInputDialog::getInt (this, tr("Shift decipher"), tr("Please input the shift :"), 1, 1, 25, 1, &ok);
 
 
     if (ok)
@@ -488,7 +508,7 @@ unsigned short int MEncryptor::d_Shift ()
 }
 
 
-//////////////  Leet Speak
+//////////////  Braille
 
 
 unsigned short int MEncryptor::e_Braille ()
@@ -534,6 +554,79 @@ unsigned short int MEncryptor::d_Braille ()
 
     return 0;
 }
+
+
+//////////////  Values (A1Z26)
+
+
+unsigned short int MEncryptor::e_Values ()
+{
+    std::ifstream protocolDatStream ("Protocols/Values (A1Z26)/Dictionary.mt_data");
+
+    if (!protocolDatStream)
+        return 1;
+
+    std::string sDict;
+    getline (protocolDatStream, sDict);
+    QString dict (QString::fromStdString (sDict));
+
+
+    QString tmpOutput ("");
+    output = output.toLower ();
+    bool charInString;
+
+    for (int i = 0 ; i != output.length () ; i++)
+    {
+        charInString = dict.contains (QString (output.at (i)));
+
+        if (charInString && output.at (i + 1) != "\n")
+            tmpOutput += QString::number (dict.indexOf (output.at (i))) + ' ';
+
+        else if (charInString)
+            tmpOutput += QString::number (dict.indexOf (output.at (i)));
+
+        else
+            tmpOutput += output.at (i) + ' ';
+    }
+
+    output = tmpOutput;
+    output.resize (output.length () - 1);
+
+    return 0;
+}
+
+unsigned short int MEncryptor::d_Values ()
+{
+    std::ifstream protocolDatStream ("Protocols/Values (A1Z26)/Dictionary.mt_data");
+
+    if (!protocolDatStream)
+        return 1;
+
+    std::string sDict;
+    getline (protocolDatStream, sDict);
+    QString dict (QString::fromStdString (sDict));
+
+
+    QStringList outputChars (output.split (" "));
+    output.clear ();
+
+
+    bool number;
+
+    for (int i = 0 ; i != outputChars.length () ; i++)
+    {
+        outputChars.at (i).toInt (&number);
+
+        if (number)
+            output += dict.at (outputChars.at (i).toInt ());
+
+        else
+            output += outputChars.at (i);
+    }
+
+    return 0;
+}
+
 
 
 ////////////////////////////////////////  Tools

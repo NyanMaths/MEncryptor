@@ -4,8 +4,6 @@
 
 #include <cstdlib>
 #include <fstream>
-#include <sstream>
-#include <cwchar>
 
 #include <QApplication>
 #include <QObject>
@@ -28,7 +26,6 @@
 
 #include <QMessageBox>
 #include <QFileDialog>
-#include <QFontDialog>
 #include <QInputDialog>
 
 
@@ -51,6 +48,8 @@ class MEncryptor : public QTabWidget
 
 
     private:
+        void initOptions ();
+
         void initEncryptor ();
           void initProtocols ();
 
@@ -77,27 +76,27 @@ class MEncryptor : public QTabWidget
           unsigned short int e_Braille ();
           unsigned short int d_Braille ();
 
+          unsigned short int e_Values ();
+          unsigned short int d_Values ();
+
 
         void outputHandling (bool);
-
-        void restart ();
 
 
         QString reverse (const QString&);
 
 
-        std::string language;
-        QString output;
-        QStringList processes;
-
-        QWidget* encryptorTab;
-        QWidget* othersTab;
+        std::vector<std::string> options;
 
         QFont UIFont;
 
         QTranslator* translator;
+        QTranslator* messageBoxesTranslator;
 
 
+        QString output;
+
+        QWidget* encryptorTab;
         QHBoxLayout* encryptorLayout;
           QGroupBox* inputBox;
           QVBoxLayout* inputBoxLayout;
@@ -118,6 +117,7 @@ class MEncryptor : public QTabWidget
 
         //////////////////////////////////
 
+        QWidget* othersTab;
         QVBoxLayout* othersTabLayout;
           QLabel* aboutMRecorderLabel;
           QComboBox* languageSelecter;
