@@ -3,20 +3,16 @@
 
 
 #include <cstdlib>
-#include <fstream>
 
-#include <QApplication>
-#include <QObject>
 #include <QProcess>
-#include <QFileInfo>
 #include <QFontDatabase>
 #include <QTranslator>
-
-#include <QWidget>
 #include <QScreen>
+
 #include <QTabWidget>
 #include <QPushButton>
 #include <QComboBox>
+#include <QCheckBox>
 #include <QLabel>
 #include <QTextEdit>
 
@@ -39,12 +35,15 @@ class MEncryptor : public QTabWidget
         ~MEncryptor ();
 
 
-    public slots:
+    private slots:
         void setProcessText ();
-        void languageModified (int);
-
         void startProcessAndDisplay ();
         void startProcessAndSave ();
+
+        void analyzeText ();
+        void clearContents ();
+
+        void languageModified (int);
 
 
     private:
@@ -52,6 +51,8 @@ class MEncryptor : public QTabWidget
 
         void initEncryptor ();
           void initProtocols ();
+
+        void initAnalyzer ();
 
         void initOthers ();
 
@@ -79,16 +80,16 @@ class MEncryptor : public QTabWidget
           unsigned short int e_Values ();
           unsigned short int d_Values ();
 
-
         void outputHandling (bool);
 
 
         QString reverse (const QString&);
 
 
-        std::vector<std::string> options;
+   //////////////////////////////////////////
 
-        QFont UIFont;
+
+        std::vector<std::string> options;
 
         QTranslator* translator;
         QTranslator* messageBoxesTranslator;
@@ -114,6 +115,22 @@ class MEncryptor : public QTabWidget
           QVBoxLayout* outputBoxLayout;
             QPushButton* bDisplayOutput;
             QPushButton* bSaveOutput;
+
+        //////////////////////////////////
+
+        QWidget* analyzerTab;
+        QHBoxLayout* analyzerTabLayout;
+          QGroupBox* analyzerInputBox;
+          QGridLayout* analyzerInputBoxLayout;
+            QTextEdit* analyzerInputZone;
+            QCheckBox* analyzeSymbols;
+            QCheckBox* caseSensitive;
+            QPushButton* bAnalyze;
+            QPushButton* bClear;
+
+        QGroupBox* analyzerOutputBox;
+        QVBoxLayout* analyzerOutputBoxLayout;
+          QTextEdit* analyzerOutputZone;
 
         //////////////////////////////////
 
