@@ -1,7 +1,11 @@
+#include <QApplication>
+
+#include <fstream>
+
 #include "MEncryptor.h"
 
 
-////////////////////////////////////////  Initialize app
+////////////////////////////////////////  Constructor / Destructor
 
 
 MEncryptor::MEncryptor () : QTabWidget ()
@@ -10,10 +14,10 @@ MEncryptor::MEncryptor () : QTabWidget ()
 
 
     QFontDatabase::addApplicationFont ("Ubuntu.ttf");
-    UIFont = QFont ("Ubuntu", 12);
 
 
     initOptions ();
+
 
     translator = new QTranslator;
     translator->load("mencryptor_" + QString::fromStdString (options.at (0)));
@@ -24,11 +28,12 @@ MEncryptor::MEncryptor () : QTabWidget ()
     qApp->installTranslator (messageBoxesTranslator);
 
 
-    initEncryptor ();  // Initialize Encryptor tab
-    initOthers ();     // Initialize Help and Settings tab
+    initEncryptor (); // Initialize "Encryptor" tab
+    initAnalyzer ();  // Initialize "Frequency Analyzer" tab
+    initOthers ();    // Initialize "Help and Settings" tab
 
 
-    qApp->setFont (UIFont);
+    qApp->setFont (QFont ("Ubuntu", 12));
 
     show ();
 
@@ -54,6 +59,22 @@ void MEncryptor::initOptions ()
             options[i] = value;
     }
 }
+
+
+MEncryptor::~MEncryptor ()
+{
+    std::ofstream optionsStream ("Options.pastouche");
+
+    if (optionsStream)
+    {
+        optionsStream<<languageSelecter->currentData ().toString ().toStdString ()<<"\n"
+                     <<languageSelecter->currentText ().toStdString ()<<"\n"
+                     <<protocolSelecter->currentText ().toStdString ();
+    }
+}
+
+
+////////////////////////////////////////  Encryptor tab
 
 
 void MEncryptor::initEncryptor ()
@@ -130,6 +151,10 @@ void MEncryptor::initProtocols ()
     protocolSelecter->setCurrentText (QString::fromStdString (options.at (2)));
 }
 
+
+//////////////  Slots
+
+
 void MEncryptor::setProcessText ()
 {
     if (processSelecter->text () == tr("Encrypt"))
@@ -143,6 +168,97 @@ void MEncryptor::setProcessText ()
         processSelecter->setText (tr("Encrypt"));
     }
 }
+
+
+////////////////////////////////////////  Analyzer tab
+
+
+void MEncryptor::initAnalyzer ()
+{
+    analyzerTab = new QWidget;
+    addTab (analyzerTab, tr("Frequency analyzer"));
+    analyzerTabLayout = new QHBoxLayout (analyzerTab);
+
+    analyzerInputBox = new QGroupBox (tr("Message"));
+    analyzerTabLayout->addWidget (analyzerInputBox);
+    analyzerInputBoxLayout = new QGridLayout (analyzerInputBox);
+
+
+    analyzerInputZone = new QTextEdit;
+    analyzerInputBoxLayout->addWidget (analyzerInputZone, 0, 0, 1, 2);
+
+    analyzeSymbols = new QCheckBox (tr("Also analyze symbols"));
+    analyzerInputBoxLayout->addWidget (analyzeSymbols, 1, 0);
+
+    caseSensitive = new QCheckBox (tr("Case sensitive"));
+    analyzerInputBoxLayout->addWidget (caseSensitive, 2, 0);
+
+    bAnalyze = new QPushButton (tr("Analyze"));
+    analyzerInputBoxLayout->addWidget (bAnalyze, 1, 1);
+    connect (bAnalyze, SIGNAL (clicked ()), this, SLOT (analyzeText ()));
+
+    bClear = new QPushButton (tr("Clear"));
+    analyzerInputBoxLayout->addWidget (bClear, 2, 1);
+    connect (bClear, SIGNAL (clicked ()), this, SLOT (clearContents ()));
+
+
+    analyzerOutputBox = new QGroupBox (tr("Analyze report"));
+    analyzerTabLayout->addWidget (analyzerOutputBox);
+    analyzerOutputBoxLayout = new QVBoxLayout (analyzerOutputBox);
+
+    analyzerOutputZone = new QTextEdit;
+    analyzerOutputBoxLayout->addWidget (analyzerOutputZone);
+    analyzerOutputZone->setReadOnly (true);
+}
+
+
+void MEncryptor::analyzeText ()
+{
+    analyzerOutputZone->clear ();
+
+    QString input (analyzerInputZone->toPlainText ());
+    if (!caseSensitive->isChecked ())
+        input = input.toUpper ();
+
+
+    input = input.remove (" ").remove ("\t").remove ("\n");
+
+    QString dict;
+
+    if (analyzeSymbols->isChecked ())
+    {
+        for (int i = 0 ; i != input.length () ; i++)
+        {
+            if (!dict.contains (input.at (i)))
+                dict += input.at (i);
+        }
+    }
+    else
+    {
+        for (int i = 0 ; i != input.length () ; i++)
+        {
+            if (input.at (i).isLetter () && !dict.contains (input.at (i)))
+                dict += input.at (i);
+        }
+    }
+
+    QStringList splitDict (dict.split (""));
+    splitDict.sort ();
+    splitDict.removeAll ("");
+
+    for (int i = 0 ; i != splitDict.length () ; i++)
+        analyzerOutputZone->setText (analyzerOutputZone->toPlainText () + tr("Found %n occurence(s) of ", "", input.count (splitDict.at (i))) + splitDict.at (i) + "\n");
+}
+
+void MEncryptor::clearContents ()
+{
+    analyzerInputZone->clear ();
+    analyzerOutputZone->clear ();
+}
+
+
+////////////////////////////////////////  Help and settings tab
+
 
 void MEncryptor::initOthers ()
 {
@@ -180,6 +296,10 @@ void MEncryptor::initOthers ()
     othersTabLayout->addWidget (languageSelecter);
 }
 
+
+//////////////  Slots
+
+
 void MEncryptor::languageModified (int)
 {
     QMessageBox::Button clickedButton = QMessageBox::question (this, tr("Language changed"), tr("Do you want to restart the app now ?"));
@@ -188,19 +308,6 @@ void MEncryptor::languageModified (int)
     {
         qApp->quit ();
         QProcess::startDetached (qApp->arguments ()[0], qApp->arguments ());
-    }
-}
-
-
-MEncryptor::~MEncryptor ()
-{
-    std::ofstream optionsStream ("Options.pastouche");
-
-    if (optionsStream)
-    {
-        optionsStream<<languageSelecter->currentData ().toString ().toStdString ()<<"\n"
-                     <<languageSelecter->currentText ().toStdString ()<<"\n"
-                     <<protocolSelecter->currentText ().toStdString ();
     }
 }
 
@@ -310,19 +417,18 @@ void MEncryptor::outputHandling (bool save)
     }
     else
     {
-        QDialog* outputPopup = new QDialog (this);
-        outputPopup->setModal (true);
-        QHBoxLayout* popupLayout = new QHBoxLayout (outputPopup);
+        QDialog outputPopup (this);
+        outputPopup.setModal (true);
+        QHBoxLayout popupLayout (&outputPopup);
 
-        QTextEdit* ouputPreview = new QTextEdit (outputPopup);
-        ouputPreview->setMinimumSize (450, 375);
-        ouputPreview->setReadOnly (true);
-        ouputPreview->setFont (UIFont);
-        ouputPreview->setText (output);
+        QTextEdit ouputPreview (&outputPopup);
+        ouputPreview.setMinimumSize (450, 375);
+        ouputPreview.setReadOnly (true);
+        ouputPreview.setText (output);
 
-        popupLayout->addWidget (ouputPreview);
+        popupLayout.addWidget (&ouputPreview);
 
-        outputPopup->show ();
+        outputPopup.exec ();
     }
 }
 

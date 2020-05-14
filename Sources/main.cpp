@@ -1,4 +1,6 @@
-﻿#include "MEncryptor.h"
+﻿#include <QApplication>
+
+#include "MEncryptor.h"
 
 
 int main (int argc, char** argv)
