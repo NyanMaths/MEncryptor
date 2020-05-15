@@ -56,37 +56,11 @@ class MEncryptor : public QTabWidget
 
         void initOthers ();
 
-
-        void chooseProcess (bool);
-          unsigned short int protocolCallBack_1 (bool, unsigned int);
-
-
-          unsigned short int e_LeetSpeak ();
-          unsigned short int d_LeetSpeak ();
-
-          unsigned short int reversedWords ();
-
-          unsigned short int reversedSentence ();
-
-          unsigned short int e_ASCIIValues ();
-          unsigned short int d_ASCIIValues ();
-
-          unsigned short int e_Shift ();
-          unsigned short int d_Shift ();
-
-          unsigned short int e_Braille ();
-          unsigned short int d_Braille ();
-
-          unsigned short int e_Values ();
-          unsigned short int d_Values ();
-
-        void outputHandling (bool);
+        void loadOptions ();
 
 
         QString reverse (const QString&);
-
-
-   //////////////////////////////////////////
+        QStringList reverse (const QStringList&);
 
 
         std::vector<std::string> options;
@@ -95,7 +69,10 @@ class MEncryptor : public QTabWidget
         QTranslator* messageBoxesTranslator;
 
 
-        QString output;
+   ///////////////  "Encryptor" tab  ///////////////
+
+
+        QString encryptorOutput;
 
         QWidget* encryptorTab;
         QHBoxLayout* encryptorLayout;
@@ -116,7 +93,33 @@ class MEncryptor : public QTabWidget
             QPushButton* bDisplayOutput;
             QPushButton* bSaveOutput;
 
-        //////////////////////////////////
+
+        void chooseProcess (bool);
+          unsigned short int e_LeetSpeak ();
+          unsigned short int d_LeetSpeak ();
+
+          unsigned short int reversedWords ();
+
+          unsigned short int reversedSentence ();
+
+          unsigned short int e_ASCIIValues ();
+          unsigned short int d_ASCIIValues ();
+
+          unsigned short int e_Shift ();
+          unsigned short int d_Shift ();
+
+          unsigned short int e_Braille ();
+          unsigned short int d_Braille ();
+
+          unsigned short int e_Values ();
+          unsigned short int d_Values ();
+
+        unsigned short int protocolCallBack_1 (bool, unsigned int);
+        void outputHandling (bool);
+
+
+   ///////////////  "Frequency analyzer" tab  ///////////////
+
 
         QWidget* analyzerTab;
         QHBoxLayout* analyzerTabLayout;
@@ -129,10 +132,18 @@ class MEncryptor : public QTabWidget
             QPushButton* bClear;
 
         QGroupBox* analyzerOutputBox;
-        QVBoxLayout* analyzerOutputBoxLayout;
+        QGridLayout* analyzerOutputBoxLayout;
+          QLabel* chooseSortingLabel;
+          QComboBox* sortingSelecter;
           QTextEdit* analyzerOutputZone;
 
-        //////////////////////////////////
+        void displayAnalysisReport (const QString&, const QString&);
+
+        unsigned int mostFrequent (const QStringList&, const QString&);
+
+
+   ///////////////  "Help and Settings" tab  ///////////////
+
 
         QWidget* othersTab;
         QVBoxLayout* othersTabLayout;

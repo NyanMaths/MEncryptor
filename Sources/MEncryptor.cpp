@@ -32,6 +32,8 @@ MEncryptor::MEncryptor () : QTabWidget ()
     initAnalyzer ();  // Initialize "Frequency Analyzer" tab
     initOthers ();    // Initialize "Help and Settings" tab
 
+    loadOptions ();
+
 
     qApp->setFont (QFont ("Ubuntu", 12));
 
@@ -48,6 +50,9 @@ void MEncryptor::initOptions ()
     options.push_back ("en");
     options.push_back ("Language : English");
     options.push_back ("Leet Speak (1337)");
+    options.push_back ("0");
+    options.push_back ("0");
+    options.push_back (tr("Frequency (decroissant)").toStdString ());
 
     std::ifstream optionsStream ("Options.pastouche");
 
@@ -55,9 +60,21 @@ void MEncryptor::initOptions ()
     {
         std::string value;
 
-        for (unsigned short i = 0 ; i != 3 && getline (optionsStream, value) ; i++)
+        for (unsigned short i = 0 ; i != 6 && getline (optionsStream, value) ; i++)
             options[i] = value;
     }
+}
+
+void MEncryptor::loadOptions ()
+{
+    languageSelecter->setCurrentText (QString::fromStdString (options.at (1)));
+    protocolSelecter->setCurrentText (QString::fromStdString (options.at (2)));
+    analyzeSymbols->setChecked (QString::fromStdString (options.at (3)).toUShort ());
+    caseSensitive->setChecked (QString::fromStdString (options.at (4)).toUShort ());
+    sortingSelecter->setCurrentText (QString::fromStdString (options.at (5)));
+
+
+    connect (languageSelecter, SIGNAL (currentIndexChanged (int)), this, SLOT (languageModified (int)));
 }
 
 
@@ -69,7 +86,10 @@ MEncryptor::~MEncryptor ()
     {
         optionsStream<<languageSelecter->currentData ().toString ().toStdString ()<<"\n"
                      <<languageSelecter->currentText ().toStdString ()<<"\n"
-                     <<protocolSelecter->currentText ().toStdString ();
+                     <<protocolSelecter->currentText ().toStdString ()<<"\n"
+                     <<QString::number (analyzeSymbols->isChecked ()).toStdString ()<<"\n"
+                     <<QString::number (caseSensitive->isChecked ()).toStdString ()<<"\n"
+                     <<sortingSelecter->currentText ().toStdString ();
     }
 }
 
@@ -89,6 +109,7 @@ void MEncryptor::initEncryptor ()
 
     inputZone = new QTextEdit;
     inputBoxLayout->addWidget (inputZone);
+    inputZone->setAcceptRichText (false);
 
 
     processWidget = new QWidget;
@@ -146,9 +167,6 @@ void MEncryptor::initProtocols ()
 
     for (unsigned int i = 1 ; getline (protocolsList, protocolName) ; i++)
         protocolSelecter->addItem (QString::fromStdString (protocolName), QVariant (i));
-
-
-    protocolSelecter->setCurrentText (QString::fromStdString (options.at (2)));
 }
 
 
@@ -186,6 +204,7 @@ void MEncryptor::initAnalyzer ()
 
     analyzerInputZone = new QTextEdit;
     analyzerInputBoxLayout->addWidget (analyzerInputZone, 0, 0, 1, 2);
+    analyzerInputZone->setAcceptRichText (false);
 
     analyzeSymbols = new QCheckBox (tr("Also analyze symbols"));
     analyzerInputBoxLayout->addWidget (analyzeSymbols, 1, 0);
@@ -202,58 +221,125 @@ void MEncryptor::initAnalyzer ()
     connect (bClear, SIGNAL (clicked ()), this, SLOT (clearContents ()));
 
 
-    analyzerOutputBox = new QGroupBox (tr("Analyze report"));
+    analyzerOutputBox = new QGroupBox (tr("Analysis report"));
     analyzerTabLayout->addWidget (analyzerOutputBox);
-    analyzerOutputBoxLayout = new QVBoxLayout (analyzerOutputBox);
+    analyzerOutputBoxLayout = new QGridLayout (analyzerOutputBox);
 
     analyzerOutputZone = new QTextEdit;
-    analyzerOutputBoxLayout->addWidget (analyzerOutputZone);
+    analyzerOutputBoxLayout->addWidget (analyzerOutputZone, 0, 0, 1, 2);
     analyzerOutputZone->setReadOnly (true);
+
+    chooseSortingLabel = new QLabel (tr("Sort by :"));
+    analyzerOutputBoxLayout->addWidget (chooseSortingLabel, 1, 0, 1, 1, Qt::AlignRight);
+
+    sortingSelecter = new QComboBox;
+    sortingSelecter->addItem (tr("Alphabetical order"));
+    sortingSelecter->addItem (tr("Frequency (croissant)"));
+    sortingSelecter->addItem (tr("Frequency (decroissant)"));
+    analyzerOutputBoxLayout->addWidget (sortingSelecter, 1, 1);
+
+    connect (sortingSelecter, SIGNAL (currentTextChanged ()), this, SLOT (analyzeText ()));
 }
+
+
+//////////////  Slots
 
 
 void MEncryptor::analyzeText ()
 {
-    analyzerOutputZone->clear ();
+    QString input = analyzerInputZone->toPlainText ().remove (" ").remove ("\t").remove ("\n");
 
-    QString input (analyzerInputZone->toPlainText ());
-    if (!caseSensitive->isChecked ())
-        input = input.toUpper ();
-
-
-    input = input.remove (" ").remove ("\t").remove ("\n");
-
-    QString dict;
-
-    if (analyzeSymbols->isChecked ())
+    if (!analyzerInputZone->toPlainText ().isEmpty ())
     {
-        for (int i = 0 ; i != input.length () ; i++)
+        analyzerOutputZone->clear ();
+
+
+        QString dict;
+
+        if (!caseSensitive->isChecked ())
+            input = input.toUpper ();
+
+
+        if (analyzeSymbols->isChecked ())
         {
-            if (!dict.contains (input.at (i)))
-                dict += input.at (i);
+            for (int i = 0 ; i != input.length () ; i++)
+            {
+                if (!dict.contains (input.at (i)))
+                    dict += input.at (i);
+            }
         }
+        else
+        {
+            for (int i = 0 ; i != input.length () ; i++)
+            {
+                if (input.at (i).isLetter () && !dict.contains (input.at (i)))
+                    dict += input.at (i);
+            }
+        }
+
+        displayAnalysisReport (input, dict);
     }
     else
-    {
-        for (int i = 0 ; i != input.length () ; i++)
-        {
-            if (input.at (i).isLetter () && !dict.contains (input.at (i)))
-                dict += input.at (i);
-        }
-    }
-
-    QStringList splitDict (dict.split (""));
-    splitDict.sort ();
-    splitDict.removeAll ("");
-
-    for (int i = 0 ; i != splitDict.length () ; i++)
-        analyzerOutputZone->setText (analyzerOutputZone->toPlainText () + tr("Found %n occurence(s) of ", "", input.count (splitDict.at (i))) + splitDict.at (i) + "\n");
+        QMessageBox::warning (this, tr("Oooooooops..."), tr("You should enter something before analysis !"));
 }
 
 void MEncryptor::clearContents ()
 {
     analyzerInputZone->clear ();
     analyzerOutputZone->clear ();
+}
+
+
+//////////////  Others
+
+
+void MEncryptor::displayAnalysisReport (const QString& input, const QString& dict)
+{
+    QStringList splitDict (dict.split (""));
+    splitDict.sort ();
+    splitDict.removeAll ("");
+
+
+    if (sortingSelecter->currentText () == tr("Alphabetical order"))
+    {
+        for (int i = 0 ; i != splitDict.length () ; i++)
+            analyzerOutputZone->setText (analyzerOutputZone->toPlainText () + QString::number (input.count (splitDict.at (i))) + tr(" occurrence(s) of character ") + splitDict.at (i) + "\n");
+    }
+    else
+    {
+        if (sortingSelecter->currentText () == tr("Frequency (croissant)"))
+            splitDict = reverse (splitDict);
+
+        QStringList splitReport;
+        unsigned int currentCharIndex;
+
+        while (!splitDict.isEmpty ())
+        {
+            currentCharIndex = mostFrequent (splitDict, input);
+
+            splitReport += QString::number (input.count (splitDict.at (currentCharIndex))) + tr(" occurrence(s) of character ") + splitDict.at (currentCharIndex);
+
+            splitDict.removeAt (currentCharIndex);
+        }
+
+        if (sortingSelecter->currentText () == tr("Frequency (croissant)"))
+            splitReport = reverse (splitReport);
+
+        analyzerOutputZone->setText (splitReport.join ("\n"));
+    }
+}
+
+unsigned int MEncryptor::mostFrequent (const QStringList& dict, const QString& input)
+{
+    QString mostFrequent = dict.at (0);
+
+    for (int i = 1 ; i != dict.length () ; i++)
+    {
+        if (input.count (mostFrequent) < input.count (dict.at (i)))
+            mostFrequent = dict.at (i);
+    }
+
+    return dict.indexOf (mostFrequent);
 }
 
 
@@ -286,10 +372,6 @@ void MEncryptor::initOthers ()
 
     languageSelecter->addItem ("Language : English", QVariant ("en"));
     languageSelecter->addItem ("Langue : Français", QVariant ("fr"));
-
-    languageSelecter->setCurrentText (QString::fromStdString (options.at (1)));
-
-    connect (languageSelecter, SIGNAL (currentIndexChanged (int)), this, SLOT (languageModified (int)));
 
 
     othersTabLayout->addWidget (aboutMRecorderLabel);
@@ -328,7 +410,7 @@ void MEncryptor::chooseProcess (bool save)
 {
     if (inputZone->toPlainText () != "")
     {
-        output = inputZone->toPlainText ();
+        encryptorOutput = inputZone->toPlainText ();
         unsigned int selectedProtocol = protocolSelecter->currentData ().toUInt ();
         unsigned short int errorCode = 0;
 
@@ -411,7 +493,7 @@ void MEncryptor::outputHandling (bool save)
 
         if (destFileName != "")
         {
-            destFile<<output.toStdString ();
+            destFile<<encryptorOutput.toStdString ();
             QMessageBox::information (this, tr("Operation successful, Houston !"), tr("File ") + destFileName + tr(" saved !"));
         }
     }
@@ -424,7 +506,7 @@ void MEncryptor::outputHandling (bool save)
         QTextEdit ouputPreview (&outputPopup);
         ouputPreview.setMinimumSize (450, 375);
         ouputPreview.setReadOnly (true);
-        ouputPreview.setText (output);
+        ouputPreview.setText (encryptorOutput);
 
         popupLayout.addWidget (&ouputPreview);
 
@@ -453,10 +535,10 @@ unsigned short int MEncryptor::e_LeetSpeak ()
     QString dict = QString::fromStdString (sDict);
     QString leetDict = QString::fromStdString (sLeetDict);
 
-    output = output.toLower ();
+    encryptorOutput = encryptorOutput.toLower ();
 
     for (unsigned short int i = 0 ; i != dict.length () ; i++)
-        output = output.replace (dict.at (i), leetDict.at (i));
+        encryptorOutput = encryptorOutput.replace (dict.at (i), leetDict.at (i));
 
     return 0;
 }
@@ -475,12 +557,12 @@ unsigned short int MEncryptor::d_LeetSpeak ()
     QString dict = QString::fromStdString (sDict);
     QString leetDict = QString::fromStdString (sLeetDict);
 
-    output = output.replace ("m", "M");
-    output = output.replace ("q", "Q");
-    output = output.replace ("v", "V");
+    encryptorOutput = encryptorOutput.replace ("m", "M");
+    encryptorOutput = encryptorOutput.replace ("q", "Q");
+    encryptorOutput = encryptorOutput.replace ("v", "V");
 
     for (unsigned short int i = 0 ; i != dict.length () ; i++)
-        output = output.replace (leetDict.at (i), dict.at (i));
+        encryptorOutput = encryptorOutput.replace (leetDict.at (i), dict.at (i));
 
     return 0;
 }
@@ -491,12 +573,12 @@ unsigned short int MEncryptor::d_LeetSpeak ()
 
 unsigned short int MEncryptor::reversedWords ()
 {
-    QStringList words = output.split (" ");
+    QStringList words = encryptorOutput.split (" ");
 
     for (int i = 0 ; i != words.length () ; i++)
         words[i] = reverse (words.at (i));
 
-    output = words.join (" ");
+    encryptorOutput = words.join (" ");
 
     return 0;
 }
@@ -507,7 +589,7 @@ unsigned short int MEncryptor::reversedWords ()
 
 unsigned short int MEncryptor::reversedSentence ()
 {
-    output = reverse (output);
+    encryptorOutput = reverse (encryptorOutput);
 
     return 0;
 }
@@ -520,25 +602,25 @@ unsigned short int MEncryptor::e_ASCIIValues ()
 {
     QStringList finalOutput;
 
-    for (int i = 0 ; i != output.length () ; i++)
-        finalOutput.push_back (QString::number (output.at (i).unicode ()));
+    for (int i = 0 ; i != encryptorOutput.length () ; i++)
+        finalOutput.push_back (QString::number (encryptorOutput.at (i).unicode ()));
 
-    output = finalOutput.join (" ");
+    encryptorOutput = finalOutput.join (" ");
 
     return 0;
 }
 
 unsigned short int MEncryptor::d_ASCIIValues ()
 {
-    if (output.contains (QRegExp ("[^\\d ]")))
+    if (encryptorOutput.contains (QRegExp ("[^\\d ]")))
         return 2;
 
-    QStringList outputChars = output.split (" ");
+    QStringList outputChars = encryptorOutput.split (" ");
 
     for (int i = 0 ; i != outputChars.length () ; i++)
         outputChars[i] = QChar (outputChars.at (i).toInt ());
 
-    output = outputChars.join ("");
+    encryptorOutput = outputChars.join ("");
 
     return 0;
 }
@@ -557,17 +639,17 @@ unsigned short int MEncryptor::e_Shift ()
 
     if (ok)
     {
-        for (int i = 0 ; i != output.length () ; i++)
+        for (int i = 0 ; i != encryptorOutput.length () ; i++)
         {
             for (int dictIndex = 0 ; dictIndex != 52 ; dictIndex++)
             {
-                if (output.at (i) == dict.at (dictIndex))
+                if (encryptorOutput.at (i) == dict.at (dictIndex))
                 {
                     if (dictIndex + 2 * shift > 51)
-                        output[i] = dict.at (dictIndex + 2 * shift - dict.length ());
+                        encryptorOutput[i] = dict.at (dictIndex + 2 * shift - dict.length ());
 
                     else
-                        output[i] = dict.at (dictIndex + 2 * shift);
+                        encryptorOutput[i] = dict.at (dictIndex + 2 * shift);
 
                     break;
                 }
@@ -590,17 +672,17 @@ unsigned short int MEncryptor::d_Shift ()
 
     if (ok)
     {
-        for (int i = 0 ; i != output.length () ; i++)
+        for (int i = 0 ; i != encryptorOutput.length () ; i++)
         {
             for (int dictIndex = 0 ; dictIndex != 52 ; dictIndex++)
             {
-                if (output.at (i) == dict.at (dictIndex))
+                if (encryptorOutput.at (i) == dict.at (dictIndex))
                 {
                     if (dictIndex - 2 * shift < 0)
-                        output[i] = dict.at (dictIndex - 2 * shift + dict.length ());
+                        encryptorOutput[i] = dict.at (dictIndex - 2 * shift + dict.length ());
 
                     else
-                        output[i] = dict.at (dictIndex - 2 * shift);
+                        encryptorOutput[i] = dict.at (dictIndex - 2 * shift);
 
                     break;
                 }
@@ -632,10 +714,10 @@ unsigned short int MEncryptor::e_Braille ()
     QStringList brailleDict = QString::fromStdString (sBrailleDict).split (" ");
 
 
-    output = output.toLower ();
+    encryptorOutput = encryptorOutput.toLower ();
 
     for (unsigned short int i = 0 ; i != dict.length () ; i++)
-        output = output.replace (dict.at (i), brailleDict.at (i));
+        encryptorOutput = encryptorOutput.replace (dict.at (i), brailleDict.at (i));
 
     return 0;
 }
@@ -656,7 +738,7 @@ unsigned short int MEncryptor::d_Braille ()
 
 
     for (unsigned short int i = 0 ; i != dict.length () ; i++)
-        output = output.replace (brailleDict.at (i), dict.at (i));
+        encryptorOutput = encryptorOutput.replace (brailleDict.at (i), dict.at (i));
 
     return 0;
 }
@@ -678,25 +760,25 @@ unsigned short int MEncryptor::e_Values ()
 
 
     QString tmpOutput ("");
-    output = output.toLower ();
+    encryptorOutput = encryptorOutput.toLower ();
     bool charInString;
 
-    for (int i = 0 ; i != output.length () ; i++)
+    for (int i = 0 ; i != encryptorOutput.length () ; i++)
     {
-        charInString = dict.contains (QString (output.at (i)));
+        charInString = dict.contains (QString (encryptorOutput.at (i)));
 
-        if (charInString && output.at (i + 1) != "\n")
-            tmpOutput += QString::number (dict.indexOf (output.at (i))) + ' ';
+        if (charInString && encryptorOutput.at (i + 1) != "\n")
+            tmpOutput += QString::number (dict.indexOf (encryptorOutput.at (i))) + ' ';
 
         else if (charInString)
-            tmpOutput += QString::number (dict.indexOf (output.at (i)));
+            tmpOutput += QString::number (dict.indexOf (encryptorOutput.at (i)));
 
         else
-            tmpOutput += output.at (i) + ' ';
+            tmpOutput += encryptorOutput.at (i) + ' ';
     }
 
-    output = tmpOutput;
-    output.resize (output.length () - 1);
+    encryptorOutput = tmpOutput;
+    encryptorOutput.resize (encryptorOutput.length () - 1);
 
     return 0;
 }
@@ -713,8 +795,8 @@ unsigned short int MEncryptor::d_Values ()
     QString dict (QString::fromStdString (sDict));
 
 
-    QStringList outputChars (output.split (" "));
-    output.clear ();
+    QStringList outputChars (encryptorOutput.split (" "));
+    encryptorOutput.clear ();
 
 
     bool number;
@@ -724,10 +806,10 @@ unsigned short int MEncryptor::d_Values ()
         outputChars.at (i).toInt (&number);
 
         if (number)
-            output += dict.at (outputChars.at (i).toInt ());
+            encryptorOutput += dict.at (outputChars.at (i).toInt ());
 
         else
-            output += outputChars.at (i);
+            encryptorOutput += outputChars.at (i);
     }
 
     return 0;
@@ -746,5 +828,15 @@ QString MEncryptor::reverse (const QString& str)
         reversedStr.push_back (str.at (i));
 
     return reversedStr;
+}
+
+QStringList MEncryptor::reverse (const QStringList& strList)
+{
+    QStringList reversedStrList;
+
+    for (int i = strList.length () - 1 ; i != -1 ; i--)
+        reversedStrList.push_back (strList.at (i));
+
+    return reversedStrList;
 }
 
