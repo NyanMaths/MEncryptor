@@ -74,7 +74,9 @@ void MEncryptor::loadOptions ()
     sortingSelecter->setCurrentText (QString::fromStdString (options.at (5)));
 
 
-    connect (languageSelecter, SIGNAL (currentIndexChanged (int)), this, SLOT (languageModified (int)));
+    connect (languageSelecter, SIGNAL (currentIndexChanged (int)), this, SLOT (languageModified ()));
+
+    connect (sortingSelecter, SIGNAL (currentIndexChanged (int)), this, SLOT (analyzeText ()));
 }
 
 
@@ -237,8 +239,6 @@ void MEncryptor::initAnalyzer ()
     sortingSelecter->addItem (tr("Frequency (croissant)"));
     sortingSelecter->addItem (tr("Frequency (decroissant)"));
     analyzerOutputBoxLayout->addWidget (sortingSelecter, 1, 1);
-
-    connect (sortingSelecter, SIGNAL (currentTextChanged ()), this, SLOT (analyzeText ()));
 }
 
 
@@ -279,8 +279,6 @@ void MEncryptor::analyzeText ()
 
         displayAnalysisReport (input, dict);
     }
-    else
-        QMessageBox::warning (this, tr("Oooooooops..."), tr("You should enter something before analysis !"));
 }
 
 void MEncryptor::clearContents ()
@@ -353,15 +351,16 @@ void MEncryptor::initOthers ()
     othersTabLayout = new QVBoxLayout (othersTab);
 
 
-    aboutMRecorderLabel = new QLabel (tr("This opensource software was developed by NY4N_M4THS (MemeTech INC)<br/>"
-                                         "under <a href = 'https://gnu.org/licenses/lgpl-3.0.en.html'>license LGPLv3</a> with the framework Qt in C++ language.<br/>"
-                                         "Follow <a href = 'https://qt.io'>this link</a> to learn more about Qt.<br/>"
-                                         "You can also visit <a href = 'https://memetech-inc.weebly.com'>our website</a> to check for updates,<br/>"
-                                         "try other of our applications or ask for new features !<br/>"
-                                         "Click <a href = 'https://github.com/NyanMaths/MEncryptor'>here</a> to visit the GitHub page of the project.<br/><br/>"));
-    QFile errorsStream (QString ("Error Codes ") + QString::fromStdString (options.at (0)) + ".pastouche");
-    if (errorsStream.open (QFile::ReadOnly))
-        aboutMRecorderLabel->setText (aboutMRecorderLabel->text () + errorsStream.readAll ());
+    aboutMRecorderLabel = new QLabel (
+    tr("This opensource software was developed by NY4N_M4THS (MemeTech INC)<br/>"
+       "under <a href = 'https://gnu.org/licenses/lgpl-3.0.en.html'>license LGPLv3</a> with the framework Qt in C++ language.<br/>"
+       "Follow <a href = 'https://qt.io'>this link</a> to learn more about Qt.<br/>"
+       "You can also visit <a href = 'https://memetech-inc.weebly.com'>our website</a> to check for updates,<br/>"
+       "try other of our applications or <a href = 'https://github.com/NyanMaths/MEncryptor/issues'>ask for new features</a> !<br/>"
+       "Click <a href = 'https://github.com/NyanMaths/MEncryptor'>here</a> to visit the GitHub page of the project.<br/><br/>"
+       "<b>Error codes :</b><br/>"
+       "&nbsp;&nbsp;#1&nbsp;&nbsp;Any files are missing in the app directory, reinstall it should fix the problem.<br/>"
+       "&nbsp;&nbsp;#2&nbsp;&nbsp;The message that you try to encrypt/decrypt is corrupted (Forbidden symbols, etc...).<br/>"));
 
     aboutMRecorderLabel->setOpenExternalLinks (true);
     aboutMRecorderLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -382,7 +381,7 @@ void MEncryptor::initOthers ()
 //////////////  Slots
 
 
-void MEncryptor::languageModified (int)
+void MEncryptor::languageModified ()
 {
     QMessageBox::Button clickedButton = QMessageBox::question (this, tr("Language changed"), tr("Do you want to restart the app now ?"));
 

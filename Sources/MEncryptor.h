@@ -43,7 +43,7 @@ class MEncryptor : public QTabWidget
         void analyzeText ();
         void clearContents ();
 
-        void languageModified (int);
+        void languageModified ();
 
 
     private:
