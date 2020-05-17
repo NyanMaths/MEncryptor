@@ -1,3 +1,0 @@
-<b>Error codes :</b><br/>
-&nbsp;&nbsp;&nbsp;#1&nbsp;&nbsp;Any files are missing in the app directory, reinstall it should fix the problem.<br/>
-&nbsp;&nbsp;&nbsp;#2&nbsp;&nbsp;The message that you try to encrypt/decrypt is corrupted (Forbidden symbols, etc...).<br/>
