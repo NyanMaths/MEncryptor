@@ -90,7 +90,7 @@
         <translation>Aide et paramètres</translation>
     </message>
     <message>
-        <location filename="MEncryptor.cpp" line="355"/>
+        <location filename="MEncryptor.cpp" line="354"/>
         <source>This opensource software was developed by NY4N_M4THS (MemeTech INC)&lt;br/&gt;under &lt;a href = &apos;https://gnu.org/licenses/lgpl-3.0.en.html&apos;&gt;license LGPLv3&lt;/a&gt; with the framework Qt in C++ language.&lt;br/&gt;Follow &lt;a href = &apos;https://qt.io&apos;&gt;this link&lt;/a&gt; to learn more about Qt.&lt;br/&gt;You can also visit &lt;a href = &apos;https://memetech-inc.weebly.com&apos;&gt;our website&lt;/a&gt; to check for updates,&lt;br/&gt;try other of our applications or &lt;a href = &apos;https://github.com/NyanMaths/MEncryptor/issues&apos;&gt;ask for new features&lt;/a&gt; !&lt;br/&gt;Click &lt;a href = &apos;https://github.com/NyanMaths/MEncryptor&apos;&gt;here&lt;/a&gt; to visit the GitHub page of the project.&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Error codes :&lt;/b&gt;&lt;br/&gt;&amp;nbsp;&amp;nbsp;#1&amp;nbsp;&amp;nbsp;Any files are missing in the app directory, reinstall it should fix the problem.&lt;br/&gt;&amp;nbsp;&amp;nbsp;#2&amp;nbsp;&amp;nbsp;The message that you try to encrypt/decrypt is corrupted (Forbidden symbols, etc...).&lt;br/&gt;</source>
         <translation>Ce logiciel opensource a été créé par NY4N_M4THS (MemeTech INC)&lt;br/&gt;sous &lt;a href = &apos;https://gnu.org/licenses/lgpl-3.0.en.html&apos;&gt;license LGPLv3&lt;/a&gt; à l&apos;aide de Qt en langage C++.&lt;br/&gt;Suivez &lt;a href = &apos;https://qt.io&apos;&gt;ce lien&lt;/a&gt; pour en savoir plus sur Qt.&lt;br/&gt;Vous pouvez également visiter &lt;a href = &apos;https://memetech-inc-fr.weebly.com&apos;&gt;notre site web&lt;/a&gt; pour télécharger les dernières mises à jour,&lt;br/&gt;découvrir d&apos;autres applications de MemeTech, ou encore &lt;a href = &apos;https://github.com/NyanMaths/MEncryptor/issues&apos;&gt;demander de nouvelles fonctionalités pour MEncryptor&lt;/a&gt; !&lt;br/&gt;Cliquez sur &lt;a href = &apos;https://github.com/NyanMaths/MEncryptor&apos;&gt;ce lien&lt;/a&gt; pour visiter la page GitHub du projet.&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Codes d&apos;erreur :&lt;/b&gt;&lt;br/&gt;&amp;nbsp;&amp;nbsp;#1&amp;nbsp;&amp;nbsp;Il manque des fichiers importants, réinstaller l&apos;application résoudra le problème.&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;#2&amp;nbsp;&amp;nbsp;Le message à crypter/décrypter est corrompu (Symboles interdits, etc...).&lt;br/&gt;</translation>
     </message>
@@ -112,33 +112,45 @@ Check in &quot;Help and settings&quot; tab to fix it !</source>
 Consultez l&apos;onglet &quot;Aide et paramètres&quot; pour réparer le problème !</translation>
     </message>
     <message>
-        <location filename="MEncryptor.cpp" line="636"/>
+        <location filename="MEncryptor.cpp" line="642"/>
         <source>Shift cipher</source>
         <translation>Chiffrement par décalage</translation>
     </message>
     <message>
-        <location filename="MEncryptor.cpp" line="636"/>
-        <location filename="MEncryptor.cpp" line="669"/>
+        <location filename="MEncryptor.cpp" line="642"/>
+        <location filename="MEncryptor.cpp" line="675"/>
         <source>Please input the shift :</source>
         <translation>Veuillez entrer le décalage :</translation>
     </message>
     <message>
-        <location filename="MEncryptor.cpp" line="669"/>
+        <location filename="MEncryptor.cpp" line="675"/>
         <source>Shift decipher</source>
         <translation>Déchiffrement par décalage</translation>
     </message>
     <message>
-        <location filename="MEncryptor.cpp" line="489"/>
+        <location filename="MEncryptor.cpp" line="833"/>
+        <location filename="MEncryptor.cpp" line="878"/>
+        <source>Vigenère cipher</source>
+        <translation>Chiffrement de Vigenère</translation>
+    </message>
+    <message>
+        <location filename="MEncryptor.cpp" line="833"/>
+        <location filename="MEncryptor.cpp" line="878"/>
+        <source>Please input the key (Alphabetic) :</source>
+        <translation>Veuillez entrer la clef (Alphabétique) :</translation>
+    </message>
+    <message>
+        <location filename="MEncryptor.cpp" line="495"/>
         <source>Save translated file as...</source>
         <translation>Sauvegarder le fichier traduit sous...</translation>
     </message>
     <message>
-        <location filename="MEncryptor.cpp" line="489"/>
+        <location filename="MEncryptor.cpp" line="495"/>
         <source>Untitled.txt</source>
         <translation>Sans titre.txt</translation>
     </message>
     <message>
-        <location filename="MEncryptor.cpp" line="496"/>
+        <location filename="MEncryptor.cpp" line="502"/>
         <source>Operation successful, Houston !</source>
         <translation>Opération réussie, Houston !</translation>
     </message>
@@ -193,12 +205,12 @@ Consultez l&apos;onglet &quot;Aide et paramètres&quot; pour réparer le problè
         <translation>Petit souci...</translation>
     </message>
     <message>
-        <location filename="MEncryptor.cpp" line="496"/>
+        <location filename="MEncryptor.cpp" line="502"/>
         <source>File </source>
         <translation>Le fichier </translation>
     </message>
     <message>
-        <location filename="MEncryptor.cpp" line="496"/>
+        <location filename="MEncryptor.cpp" line="502"/>
         <source> saved !</source>
         <translation> a été sauvegardé !</translation>
     </message>

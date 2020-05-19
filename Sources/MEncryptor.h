@@ -114,6 +114,9 @@ class MEncryptor : public QTabWidget
           unsigned short int e_Values ();
           unsigned short int d_Values ();
 
+          unsigned short int e_Vigenere ();
+          unsigned short int d_Vigenere ();
+
         unsigned short int protocolCallBack_1 (bool, unsigned int);
         void outputHandling (bool);
 

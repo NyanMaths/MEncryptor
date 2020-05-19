@@ -351,8 +351,8 @@ void MEncryptor::initOthers ()
     othersTabLayout = new QVBoxLayout (othersTab);
 
 
-    aboutMRecorderLabel = new QLabel (
-    tr("This opensource software was developed by NY4N_M4THS (MemeTech INC)<br/>"
+    aboutMRecorderLabel = new QLabel (tr(
+       "This opensource software was developed by NY4N_M4THS (MemeTech INC)<br/>"
        "under <a href = 'https://gnu.org/licenses/lgpl-3.0.en.html'>license LGPLv3</a> with the framework Qt in C++ language.<br/>"
        "Follow <a href = 'https://qt.io'>this link</a> to learn more about Qt.<br/>"
        "You can also visit <a href = 'https://memetech-inc.weebly.com'>our website</a> to check for updates,<br/>"
@@ -419,7 +419,7 @@ void MEncryptor::chooseProcess (bool save)
 
 
         if (selectedProtocol < 11)
-            protocolCallBack_1 (encrypt, selectedProtocol);
+            errorCode = protocolCallBack_1 (encrypt, selectedProtocol);
 
 
         if (errorCode == 42) { }
@@ -473,6 +473,12 @@ unsigned short int MEncryptor::protocolCallBack_1 (bool encrypt, unsigned int pr
             return e_Values ();
 
         return d_Values ();
+
+    case 8:
+        if (encrypt)
+            return e_Vigenere ();
+
+        return d_Vigenere ();
 
     default:
         break;
@@ -814,6 +820,99 @@ unsigned short int MEncryptor::d_Values ()
     return 0;
 }
 
+
+//////////////  Vigenère
+
+
+unsigned short int MEncryptor::e_Vigenere ()
+{
+    bool ok;
+    QString dict ("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ");
+
+
+    QString enteredKey = QInputDialog::getText(this, tr("Vigenère cipher"), tr("Please input the key (Alphabetic) :"), QLineEdit::Normal, "", &ok);
+
+    QString key;
+    for (int i = 0 ; i != enteredKey.length () ; i++)
+        if (dict.contains (enteredKey.at (i)))
+            key += enteredKey.at (i);
+
+
+    if (ok)
+    {
+        int messageIndex = 0, keyIndex = 0;
+
+        while (messageIndex != encryptorOutput.length ())
+        {
+            keyIndex = 0;
+
+            while (keyIndex != key.length () && messageIndex != encryptorOutput.length ())
+            {
+                if (dict.contains (encryptorOutput.at (messageIndex)))
+                {
+                    if (dict.indexOf (encryptorOutput.at (messageIndex)) + dict.indexOf (key.at (keyIndex)) >= dict.length ())
+                       encryptorOutput[messageIndex] = dict.at (dict.indexOf (encryptorOutput.at (messageIndex)) + dict.indexOf (key.at (keyIndex)) - dict.length ());
+
+                    else
+                        encryptorOutput[messageIndex] = dict.at (dict.indexOf (encryptorOutput.at (messageIndex)) + dict.indexOf (key.at (keyIndex)));
+
+                    keyIndex++;
+                }
+
+                messageIndex++;
+            }
+        }
+    }
+    else
+        return 42;
+
+    return 0;
+}
+
+unsigned short int MEncryptor::d_Vigenere ()
+{
+    bool ok;
+    QString dict ("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ");
+
+
+    QString enteredKey = QInputDialog::getText(this, tr("Vigenère cipher"), tr("Please input the key (Alphabetic) :"), QLineEdit::Normal, "", &ok);
+
+    QString key;
+    for (int i = 0 ; i != enteredKey.length () ; i++)
+        if (dict.contains (enteredKey.at (i)))
+            key += enteredKey.at (i);
+
+
+    if (ok)
+    {
+        int messageIndex = 0, keyIndex = 0;
+
+        while (messageIndex != encryptorOutput.length ())
+        {
+            keyIndex = 0;
+
+            while (keyIndex != key.length () && messageIndex != encryptorOutput.length ())
+            {
+                if (dict.contains (encryptorOutput.at (messageIndex)))
+                {
+                    if (dict.indexOf (encryptorOutput.at (messageIndex)) - dict.indexOf (key.at (keyIndex)) < 0)
+                       encryptorOutput[messageIndex] = dict.at (dict.indexOf (encryptorOutput.at (messageIndex)) - dict.indexOf (key.at (keyIndex)) + dict.length ());
+
+                    else
+                        encryptorOutput[messageIndex] = dict.at (dict.indexOf (encryptorOutput.at (messageIndex)) - dict.indexOf (key.at (keyIndex)));
+
+                    keyIndex++;
+                }
+
+                messageIndex++;
+            }
+        }
+    }
+    else
+        return 42;
+
+    return 0;
+}
 
 
 ////////////////////////////////////////  Tools
