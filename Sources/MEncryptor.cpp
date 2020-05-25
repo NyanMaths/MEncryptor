@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QStyleFactory>
 
 #include <fstream>
 
@@ -10,17 +11,18 @@
 
 MEncryptor::MEncryptor () : QTabWidget ()
 {
-    setWindowIcon (QIcon ("Window Icon.png"));
-
-
     QFontDatabase::addApplicationFont ("Ubuntu.ttf");
+    qApp->setFont (QFont ("Ubuntu", 12));
+    initPalettes ();
+    readOptions ();
 
-
-    initOptions ();
+    errors += tr("Some files are missing in the app directory,\nreinstall it should fix the problem !");
+    errors += tr("The message that you try to encrypt/decrypt\nis corrupted (Forbidden symbols, etc...) !");
+    errors += tr("You entered an invalid key, please retry !");
 
 
     translator = new QTranslator;
-    translator->load("mencryptor_" + QString::fromStdString (options.at (0)));
+    translator->load ("mencryptor_" + QString::fromStdString (options.at (0)));
     qApp->installTranslator (translator);
 
     messageBoxesTranslator = new QTranslator;
@@ -32,10 +34,9 @@ MEncryptor::MEncryptor () : QTabWidget ()
     initAnalyzer ();  // Initialize "Frequency Analyzer" tab
     initOthers ();    // Initialize "Help and Settings" tab
 
+
     loadOptions ();
-
-
-    qApp->setFont (QFont ("Ubuntu", 12));
+    setWindowIcon (QIcon ("Window Icon.png"));
 
     show ();
 
@@ -45,14 +46,16 @@ MEncryptor::MEncryptor () : QTabWidget ()
     setFixedSize (size ());
 }
 
-void MEncryptor::initOptions ()
+void MEncryptor::readOptions ()
 {
     options.push_back ("en");
-    options.push_back ("Language : English");
-    options.push_back ("Leet Speak (1337)");
-    options.push_back ("0");
-    options.push_back ("0");
-    options.push_back (tr("Frequency (decroissant)").toStdString ());
+    options.push_back ("English");
+    options.push_back ("0");  // Theme index
+    options.push_back ("0");  // Process (0 == encrypt, 1 == decrypt)
+    options.push_back ("0");  // Protocol index
+    options.push_back ("0");  // Analyze symbols ? (boolean)
+    options.push_back ("0");  // Case sensitive ? (boolean)
+    options.push_back ("2");  // Sorting index
 
     std::ifstream optionsStream ("Options.pastouche");
 
@@ -60,23 +63,99 @@ void MEncryptor::initOptions ()
     {
         std::string value;
 
-        for (unsigned short i = 0 ; i != 6 && getline (optionsStream, value) ; i++)
+        for (unsigned short i = 0 ; getline (optionsStream, value) ; i++)
             options[i] = value;
     }
 }
 
+void MEncryptor::initPalettes ()
+{
+    lightPalette = qApp->palette ();
+
+
+    QColor darkColor = QColor (45, 45, 45);
+    QColor disabledColor = QColor (127, 127, 127);
+
+    darkPalette.setColor (QPalette::Window, darkColor);
+    darkPalette.setColor (QPalette::WindowText, Qt::white);
+    darkPalette.setColor (QPalette::Base, QColor (18, 18, 18));
+    darkPalette.setColor (QPalette::AlternateBase, darkColor);
+    darkPalette.setColor (QPalette::ToolTipBase, Qt::white);
+    darkPalette.setColor (QPalette::ToolTipText, Qt::white);
+    darkPalette.setColor (QPalette::Text, Qt::white);
+    darkPalette.setColor (QPalette::Disabled, QPalette::Text, disabledColor);
+    darkPalette.setColor (QPalette::Button, darkColor);
+    darkPalette.setColor (QPalette::ButtonText, Qt::white);
+    darkPalette.setColor (QPalette::Disabled, QPalette::ButtonText, disabledColor);
+    darkPalette.setColor (QPalette::BrightText, Qt::red);
+    darkPalette.setColor (QPalette::Link, QColor (42, 130, 218));
+
+    darkPalette.setColor (QPalette::Highlight, QColor (42, 130, 218));
+    darkPalette.setColor (QPalette::HighlightedText, Qt::black);
+    darkPalette.setColor (QPalette::Disabled, QPalette::HighlightedText, disabledColor);
+
+    darkPalette.setColor (QPalette::ToolTipBase, Qt::white);
+    darkPalette.setColor (QPalette::ToolTipText, Qt::white);
+}
+
+void MEncryptor::initUITheme ()
+{
+    unsigned short int themeIndex = themeSelecter->currentIndex ();
+
+    if (themeIndex == 0)
+    {
+        qApp->setStyle (QStyleFactory::create ("WindowsVista"));
+        qApp->setPalette (lightPalette);
+
+        processImage->setPixmap (QPixmap ("Encryptor image.png"));
+    }
+    else if (themeIndex == 1)
+    {
+        qApp->setStyle (QStyleFactory::create ("Fusion"));
+        qApp->setPalette (lightPalette);
+
+        processImage->setPixmap (QPixmap ("Encryptor image.png"));
+    }
+    else
+    {
+        qApp->setStyle (QStyleFactory::create ("Fusion"));
+        qApp->setPalette (darkPalette);
+
+        processImage->setPixmap (QPixmap ("Encryptor image dark.png"));
+    }
+
+    qApp->setFont (QFont ("Ubuntu", 12));
+}
+
 void MEncryptor::loadOptions ()
 {
+    if (options.at (3) == "0")
+    {
+        processSelecter->setText (tr("Encrypt"));
+        processSelecter->setIcon (QIcon ("Closed Locker.png"));
+    }
+    else
+    {
+        processSelecter->setText (tr("Decrypt"));
+        processSelecter->setIcon (QIcon ("Opened Locker.png"));
+    }
+
+    protocolSelecter->setCurrentIndex (QString::fromStdString (options.at (4)).toUShort ());
+
+    analyzeSymbols->setChecked (QString::fromStdString (options.at (5)).toUShort ());
+    caseSensitive->setChecked (QString::fromStdString (options.at (6)).toUShort ());
+    sortingSelecter->setCurrentIndex (QString::fromStdString (options.at (7)).toUShort ());
+
     languageSelecter->setCurrentText (QString::fromStdString (options.at (1)));
-    protocolSelecter->setCurrentText (QString::fromStdString (options.at (2)));
-    analyzeSymbols->setChecked (QString::fromStdString (options.at (3)).toUShort ());
-    caseSensitive->setChecked (QString::fromStdString (options.at (4)).toUShort ());
-    sortingSelecter->setCurrentText (QString::fromStdString (options.at (5)));
+    themeSelecter->setCurrentIndex (QString::fromStdString (options.at (2)).toUShort ());
+
+
+    initUITheme ();
 
 
     connect (languageSelecter, SIGNAL (currentIndexChanged (int)), this, SLOT (languageModified ()));
-
     connect (sortingSelecter, SIGNAL (currentIndexChanged (int)), this, SLOT (analyzeText ()));
+    connect (themeSelecter, SIGNAL (currentIndexChanged (int)), this, SLOT (initUITheme ()));
 }
 
 
@@ -88,10 +167,17 @@ MEncryptor::~MEncryptor ()
     {
         optionsStream<<languageSelecter->currentData ().toString ().toStdString ()<<"\n"
                      <<languageSelecter->currentText ().toStdString ()<<"\n"
-                     <<protocolSelecter->currentText ().toStdString ()<<"\n"
-                     <<QString::number (analyzeSymbols->isChecked ()).toStdString ()<<"\n"
-                     <<QString::number (caseSensitive->isChecked ()).toStdString ()<<"\n"
-                     <<sortingSelecter->currentText ().toStdString ();
+                     <<themeSelecter->currentIndex ()<<"\n";
+
+        if (processSelecter->text () == tr("Encrypt"))
+            optionsStream<<0;
+        else
+            optionsStream<<1;
+
+        optionsStream<<"\n"<<protocolSelecter->currentIndex ()<<"\n"
+                     <<analyzeSymbols->isChecked ()<<"\n"
+                     <<caseSensitive->isChecked ()<<"\n"
+                     <<sortingSelecter->currentIndex ()<<"\n";
     }
 }
 
@@ -118,8 +204,6 @@ void MEncryptor::initEncryptor ()
     processLayout = new QVBoxLayout (processWidget);
 
     processImage = new QLabel;
-    processImage->setPixmap (QPixmap ("Process settings.png"));
-
 
     chooseProcessLabel = new QLabel (tr("Choose what to do :"));
 
@@ -341,14 +425,14 @@ unsigned int MEncryptor::mostFrequent (const QStringList& dict, const QString& i
 }
 
 
-////////////////////////////////////////  Help and settings tab
+////////////////////////////////////////  "Help and settings" tab
 
 
 void MEncryptor::initOthers ()
 {
     othersTab = new QWidget;
     addTab (othersTab, tr("Help and settings"));
-    othersTabLayout = new QVBoxLayout (othersTab);
+    othersTabLayout = new QGridLayout (othersTab);
 
 
     aboutMRecorderLabel = new QLabel (tr(
@@ -357,24 +441,37 @@ void MEncryptor::initOthers ()
        "Follow <a href = 'https://qt.io'>this link</a> to learn more about Qt.<br/>"
        "You can also visit <a href = 'https://memetech-inc.weebly.com'>our website</a> to check for updates,<br/>"
        "try other of our applications or <a href = 'https://github.com/NyanMaths/MEncryptor/issues'>ask for new features</a> !<br/>"
-       "Click <a href = 'https://github.com/NyanMaths/MEncryptor'>here</a> to visit the GitHub page of the project.<br/><br/>"
-       "<b>Error codes :</b><br/>"
-       "&nbsp;&nbsp;#1&nbsp;&nbsp;Any files are missing in the app directory, reinstall it should fix the problem.<br/>"
-       "&nbsp;&nbsp;#2&nbsp;&nbsp;The message that you try to encrypt/decrypt is corrupted (Forbidden symbols, etc...).<br/>"));
+       "Click <a href = 'https://github.com/NyanMaths/MEncryptor'>here</a> to visit the GitHub page of the project."));
 
     aboutMRecorderLabel->setOpenExternalLinks (true);
-    aboutMRecorderLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
-    aboutMRecorderLabel->setTextFormat(Qt::RichText);
+    aboutMRecorderLabel->setTextInteractionFlags (Qt::TextBrowserInteraction);
+    aboutMRecorderLabel->setTextFormat (Qt::RichText);
 
 
+    UIOptionsBox = new QGroupBox (tr("UI settings"));
+    UIOptionsBoxLayout = new QGridLayout (UIOptionsBox);
+    UIOptionsBoxLayout->setAlignment (Qt::AlignLeft);
+
+    chooseLanguageLabel = new QLabel (tr("Display language :"));
     languageSelecter = new QComboBox;
+    languageSelecter->addItem ("English", QVariant ("en"));
+    languageSelecter->addItem ("Français", QVariant ("fr"));
 
-    languageSelecter->addItem ("Language : English", QVariant ("en"));
-    languageSelecter->addItem ("Langue : Français", QVariant ("fr"));
+    chooseThemeLabel = new QLabel (tr("Interface theme :"));
+    themeSelecter = new QComboBox;
+    themeSelecter->addItem (tr("Classic light"));
+    themeSelecter->addItem (tr("Fusion light"));
+    themeSelecter->addItem (tr("Fusion dark"));
 
 
-    othersTabLayout->addWidget (aboutMRecorderLabel);
-    othersTabLayout->addWidget (languageSelecter);
+    UIOptionsBoxLayout->addWidget (chooseLanguageLabel, 0, 0);
+    UIOptionsBoxLayout->addWidget (languageSelecter, 0, 1);
+    UIOptionsBoxLayout->addWidget (chooseThemeLabel, 1, 0);
+    UIOptionsBoxLayout->addWidget (themeSelecter, 1, 1);
+
+
+    othersTabLayout->addWidget (aboutMRecorderLabel, 0, 0, 1, 2);
+    othersTabLayout->addWidget (UIOptionsBox, 1, 0);
 }
 
 
@@ -383,7 +480,7 @@ void MEncryptor::initOthers ()
 
 void MEncryptor::languageModified ()
 {
-    QMessageBox::Button clickedButton = QMessageBox::question (this, tr("Language changed"), tr("Do you want to restart the app now ?"));
+    QMessageBox::Button clickedButton = QMessageBox::question (this, tr("Language changed"), tr("You need to restart the app to apply changes.\nDo you want to restart the app now ?"));
 
     if (clickedButton == QMessageBox::Yes)
     {
@@ -428,7 +525,7 @@ void MEncryptor::chooseProcess (bool save)
             outputHandling (save);
 
         else
-            QMessageBox::critical (this, tr("Runtime error"), tr("Error #") + QString::number (errorCode) + tr("\nCheck in \"Help and settings\" tab to fix it !"));
+            QMessageBox::critical (this, tr("Runtime error #") + QString::number (errorCode), errors.at (errorCode - 1));
     }
     else
         QMessageBox::warning (this, tr("Little problem..."), tr("You should enter something in the text area to translate !"));
@@ -452,9 +549,9 @@ unsigned short int MEncryptor::protocolCallBack_1 (bool encrypt, unsigned int pr
 
     case 4:
         if (encrypt)
-            return e_ASCIIValues ();
+            return e_UnicodeValues ();
 
-        return d_ASCIIValues ();
+        return d_UnicodeValues ();
 
     case 5:
         if (encrypt)
@@ -600,10 +697,10 @@ unsigned short int MEncryptor::reversedSentence ()
 }
 
 
-//////////////  ASCII Values
+//////////////  Unicode Values
 
 
-unsigned short int MEncryptor::e_ASCIIValues ()
+unsigned short int MEncryptor::e_UnicodeValues ()
 {
     QStringList finalOutput;
 
@@ -615,7 +712,7 @@ unsigned short int MEncryptor::e_ASCIIValues ()
     return 0;
 }
 
-unsigned short int MEncryptor::d_ASCIIValues ()
+unsigned short int MEncryptor::d_UnicodeValues ()
 {
     if (encryptorOutput.contains (QRegExp ("[^\\d ]")))
         return 2;
@@ -764,18 +861,18 @@ unsigned short int MEncryptor::e_Values ()
     QString dict (QString::fromStdString (sDict));
 
 
-    QString tmpOutput ("");
+    QString tmpOutput;
     encryptorOutput = encryptorOutput.toLower ();
-    bool charInString;
+    bool charInDict;
 
     for (int i = 0 ; i != encryptorOutput.length () ; i++)
     {
-        charInString = dict.contains (QString (encryptorOutput.at (i)));
+        charInDict = dict.contains (QString (encryptorOutput.at (i)));
 
-        if (charInString && encryptorOutput.at (i + 1) != "\n")
+        if (charInDict && encryptorOutput.at (i + 1) != "\n")
             tmpOutput += QString::number (dict.indexOf (encryptorOutput.at (i))) + ' ';
 
-        else if (charInString)
+        else if (charInDict)
             tmpOutput += QString::number (dict.indexOf (encryptorOutput.at (i)));
 
         else
@@ -810,11 +907,14 @@ unsigned short int MEncryptor::d_Values ()
     {
         outputChars.at (i).toInt (&number);
 
-        if (number)
+        if (number && outputChars.at (i).toInt () < dict.length () && outputChars.at (i).toInt () > -1)
             encryptorOutput += dict.at (outputChars.at (i).toInt ());
 
-        else
+        else if (outputChars.at (i).length () == 1)
             encryptorOutput += outputChars.at (i);
+
+        else
+            return 2;
     }
 
     return 0;
@@ -831,6 +931,9 @@ unsigned short int MEncryptor::e_Vigenere ()
 
 
     QString enteredKey = QInputDialog::getText(this, tr("Vigenère cipher"), tr("Please input the key (Alphabetic) :"), QLineEdit::Normal, "", &ok);
+
+    if (enteredKey.isEmpty ())
+        return 3;
 
     QString key;
     for (int i = 0 ; i != enteredKey.length () ; i++)
@@ -876,6 +979,9 @@ unsigned short int MEncryptor::d_Vigenere ()
 
 
     QString enteredKey = QInputDialog::getText(this, tr("Vigenère cipher"), tr("Please input the key (Alphabetic) :"), QLineEdit::Normal, "", &ok);
+
+    if (enteredKey.isEmpty ())
+        return 3;
 
     QString key;
     for (int i = 0 ; i != enteredKey.length () ; i++)

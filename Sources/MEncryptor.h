@@ -44,10 +44,14 @@ class MEncryptor : public QTabWidget
         void clearContents ();
 
         void languageModified ();
+        void initUITheme ();
 
 
     private:
-        void initOptions ();
+        void initPalettes ();
+
+        void readOptions ();
+        void loadOptions ();
 
         void initEncryptor ();
           void initProtocols ();
@@ -56,14 +60,16 @@ class MEncryptor : public QTabWidget
 
         void initOthers ();
 
-        void loadOptions ();
-
 
         QString reverse (const QString&);
         QStringList reverse (const QStringList&);
 
 
         std::vector<std::string> options;
+        QStringList errors;
+
+        QPalette lightPalette;
+        QPalette darkPalette;
 
         QTranslator* translator;
         QTranslator* messageBoxesTranslator;
@@ -102,8 +108,8 @@ class MEncryptor : public QTabWidget
 
           unsigned short int reversedSentence ();
 
-          unsigned short int e_ASCIIValues ();
-          unsigned short int d_ASCIIValues ();
+          unsigned short int e_UnicodeValues ();
+          unsigned short int d_UnicodeValues ();
 
           unsigned short int e_Shift ();
           unsigned short int d_Shift ();
@@ -149,9 +155,15 @@ class MEncryptor : public QTabWidget
 
 
         QWidget* othersTab;
-        QVBoxLayout* othersTabLayout;
+        QGridLayout* othersTabLayout;
           QLabel* aboutMRecorderLabel;
-          QComboBox* languageSelecter;
+
+          QGroupBox* UIOptionsBox;
+          QGridLayout* UIOptionsBoxLayout;
+            QLabel* chooseLanguageLabel;
+            QComboBox* languageSelecter;
+            QLabel* chooseThemeLabel;
+            QComboBox* themeSelecter;
 };
 
 
