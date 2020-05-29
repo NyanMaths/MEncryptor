@@ -1,12 +1,12 @@
 ﻿#include <QApplication>
 
-#include "MEncryptor.h"
+#include "Application.h"
 
 
 int main (int argc, char** argv)
 {
     QApplication app (argc, argv);
-    MEncryptor mainWindow;
 
+    Application mainWindow;
     return app.exec();
 }

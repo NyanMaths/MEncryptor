@@ -2,10 +2,16 @@ QT += widgets
 
 
 HEADERS += \
-    MEncryptor.h
+    AnalyzerWidget.h \
+    Application.h \
+    EncryptorWidget.h \
+    OptionsWidget.h
 
 SOURCES += \
-    MEncryptor.cpp \
+    AnalyzerWidget.cpp \
+    Application.cpp \
+    EncryptorWidget.cpp \
+    OptionsWidget.cpp \
     main.cpp
 
 
