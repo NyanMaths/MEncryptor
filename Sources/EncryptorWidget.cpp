@@ -248,27 +248,27 @@ unsigned short int EncryptorWidget::protocolCallBack_1 (bool encrypt, unsigned i
 
     case 4:
         if (encrypt)
-            return e_UnicodeValues ();
+            return e_UnicodeValues (10);
 
-        return d_UnicodeValues ();
+        return d_UnicodeValues (10);
 
     case 5:
         if (encrypt)
-            return e_Shift ();
+            return e_UnicodeValues (2);
 
-        return d_Shift ();
+        return d_UnicodeValues (2);
 
     case 6:
         if (encrypt)
-            return e_Braille ();
+            return e_UnicodeValues (8);
 
-        return d_Braille ();
+        return d_UnicodeValues (8);
 
     case 7:
         if (encrypt)
-            return e_Values ();
+            return e_UnicodeValues (16);
 
-        return d_Values ();
+        return d_UnicodeValues (16);
 
     default:
         break;
@@ -283,23 +283,41 @@ unsigned short int EncryptorWidget::protocolCallBack_2 (bool encrypt, unsigned i
     {
     case 8:
         if (encrypt)
+            return e_Shift ();
+
+        return d_Shift ();
+
+    case 9:
+        if (encrypt)
+            return e_Braille ();
+
+        return d_Braille ();
+
+    case 10:
+        if (encrypt)
+            return e_Values ();
+
+        return d_Values ();
+
+    case 11:
+        if (encrypt)
             return e_Vigenere ();
 
         return d_Vigenere ();
 
-    case 9:
+    case 12:
         if (encrypt)
             return e_Greek ();
 
         return d_Greek ();
 
-    case 10:
+    case 13:
         if (encrypt)
             return e_Cyrillic ();
 
         return d_Cyrillic ();
 
-    case 11:
+    case 14:
         if (encrypt)
             return e_Morse ();
 
@@ -496,27 +514,45 @@ unsigned short int EncryptorWidget::d_Cyrillic ()
 //////////////  Unicode Values
 
 
-unsigned short int EncryptorWidget::e_UnicodeValues ()
+unsigned short int EncryptorWidget::e_UnicodeValues (unsigned short int base)
 {
     QStringList finalOutput;
 
     for (int i = 0 ; i != encryptorOutput.length () ; i++)
-        finalOutput.push_back (QString::number (encryptorOutput.at (i).unicode ()));
+        finalOutput.push_back (QString::number (encryptorOutput.at (i).unicode (), base));
 
     encryptorOutput = finalOutput.join (" ");
 
     return 0;
 }
 
-unsigned short int EncryptorWidget::d_UnicodeValues ()
+unsigned short int EncryptorWidget::d_UnicodeValues (unsigned short int base)
 {
-    if (encryptorOutput.contains (QRegExp ("[^\\d ]")))
-        return 2;
+    if (base == 2)
+    {
+        if (encryptorOutput.contains (QRegExp ("[^01 ]")))
+            return 2;
+    }
+    else if (base == 8)
+    {
+        if (encryptorOutput.contains (QRegExp ("[^01234567 ]")))
+            return 2;
+    }
+    else if (base == 10)
+    {
+        if (encryptorOutput.contains (QRegExp ("[^\\d ]")))
+            return 2;
+    }
+    else
+    {
+        if (encryptorOutput.toUpper ().contains (QRegExp ("[^\\dABCEDF ]")))
+            return 2;
+    }
 
     QStringList outputChars = encryptorOutput.split (" ");
 
     for (int i = 0 ; i != outputChars.length () ; i++)
-        outputChars[i] = QChar (outputChars.at (i).toInt ());
+        outputChars[i] = QChar (outputChars.at (i).toInt (nullptr, base));
 
     encryptorOutput = outputChars.join ("");
 

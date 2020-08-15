@@ -78,8 +78,8 @@ class EncryptorWidget : public QWidget
           unsigned short int e_Cyrillic ();
           unsigned short int d_Cyrillic ();
 
-          unsigned short int e_UnicodeValues ();
-          unsigned short int d_UnicodeValues ();
+          unsigned short int e_UnicodeValues (unsigned short int);
+          unsigned short int d_UnicodeValues (unsigned short int);
 
           unsigned short int e_Shift ();
           unsigned short int d_Shift ();

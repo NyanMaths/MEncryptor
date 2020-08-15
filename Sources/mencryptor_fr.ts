@@ -160,55 +160,55 @@ est corrompu (Symboles interdits, etc...) !</translation>
         <translation>Vous devez entrer quelque chose dans la zone de texte !</translation>
     </message>
     <message>
-        <location filename="EncryptorWidget.cpp" line="320"/>
+        <location filename="EncryptorWidget.cpp" line="338"/>
         <source>Save translated file as...</source>
         <translation>Sauvegarder le fichier traduit sous...</translation>
     </message>
     <message>
-        <location filename="EncryptorWidget.cpp" line="320"/>
+        <location filename="EncryptorWidget.cpp" line="338"/>
         <source>Untitled.txt</source>
         <translation>Sans titre.txt</translation>
     </message>
     <message>
-        <location filename="EncryptorWidget.cpp" line="327"/>
+        <location filename="EncryptorWidget.cpp" line="345"/>
         <source>Operation successful, Houston !</source>
         <translation>Opération réussie, Houston !</translation>
     </message>
     <message>
-        <location filename="EncryptorWidget.cpp" line="327"/>
+        <location filename="EncryptorWidget.cpp" line="345"/>
         <source>File </source>
         <translation>Le fichier </translation>
     </message>
     <message>
-        <location filename="EncryptorWidget.cpp" line="327"/>
+        <location filename="EncryptorWidget.cpp" line="345"/>
         <source> saved !</source>
         <translation> a été sauvegardé !</translation>
     </message>
     <message>
-        <location filename="EncryptorWidget.cpp" line="535"/>
+        <location filename="EncryptorWidget.cpp" line="571"/>
         <source>Shift cipher</source>
         <translation>Chiffrement par décalage</translation>
     </message>
     <message>
-        <location filename="EncryptorWidget.cpp" line="535"/>
-        <location filename="EncryptorWidget.cpp" line="568"/>
+        <location filename="EncryptorWidget.cpp" line="571"/>
+        <location filename="EncryptorWidget.cpp" line="604"/>
         <source>Please input the shift :</source>
         <translation>Veuillez entrer le décalage :</translation>
     </message>
     <message>
-        <location filename="EncryptorWidget.cpp" line="568"/>
+        <location filename="EncryptorWidget.cpp" line="604"/>
         <source>Shift decipher</source>
         <translation>Déchiffrement par décalage</translation>
     </message>
     <message>
-        <location filename="EncryptorWidget.cpp" line="729"/>
-        <location filename="EncryptorWidget.cpp" line="777"/>
+        <location filename="EncryptorWidget.cpp" line="765"/>
+        <location filename="EncryptorWidget.cpp" line="813"/>
         <source>Vigenère cipher</source>
         <translation>Chiffrement de Vigenère</translation>
     </message>
     <message>
-        <location filename="EncryptorWidget.cpp" line="729"/>
-        <location filename="EncryptorWidget.cpp" line="777"/>
+        <location filename="EncryptorWidget.cpp" line="765"/>
+        <location filename="EncryptorWidget.cpp" line="813"/>
         <source>Please input the key (Alphabetic) :</source>
         <translation>Veuillez entrer la clef (Alphabétique) :</translation>
     </message>
