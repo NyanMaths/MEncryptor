@@ -9,84 +9,89 @@
 
 AnalyzerWidget::AnalyzerWidget () : QWidget ()
 {
-    layout = new QHBoxLayout (this);
+    layout = new QHBoxLayout(this);
 
 
-    inputBox = new QGroupBox (tr("Message"));
-    inputBoxLayout = new QGridLayout (inputBox);
+    inputBox = new QGroupBox(tr("Message"));
+    inputBoxLayout = new QGridLayout(inputBox);
 
     inputZone = new QTextEdit;
-    inputBoxLayout->addWidget (inputZone, 0, 0, 1, 2);
-    inputZone->setAcceptRichText (false);
+    inputBoxLayout->addWidget(inputZone, 0, 0, 1, 2);
+    inputZone->setAcceptRichText(false);
 
-    analyzeSymbols = new QCheckBox (tr("Also analyze symbols"));
-    inputBoxLayout->addWidget (analyzeSymbols, 1, 0);
+    analyzeSymbols = new QCheckBox(tr("Also analyze symbols"));
+    inputBoxLayout->addWidget(analyzeSymbols, 1, 0);
+    connect(analyzeSymbols, SIGNAL(stateChanged(int)), this, SLOT(analyzeText()));
 
-    caseSensitive = new QCheckBox (tr("Case sensitive"));
-    inputBoxLayout->addWidget (caseSensitive, 2, 0);
+    caseSensitive = new QCheckBox(tr("Case sensitive"));
+    inputBoxLayout->addWidget(caseSensitive, 2, 0);
+    connect(caseSensitive, SIGNAL(stateChanged(int)), this, SLOT(analyzeText()));
 
-    bAnalyze = new QPushButton (tr("Analyze"));
-    inputBoxLayout->addWidget (bAnalyze, 1, 1);
-    connect (bAnalyze, SIGNAL (clicked ()), this, SLOT (analyzeText ()));
+    bAnalyze = new QPushButton(tr("Analyze"));
+    inputBoxLayout->addWidget(bAnalyze, 1, 1);
+    connect(bAnalyze, SIGNAL(clicked()), this, SLOT(analyzeText()));
 
-    bClear = new QPushButton (tr("Clear"));
-    inputBoxLayout->addWidget (bClear, 2, 1);
-    connect (bClear, SIGNAL (clicked ()), this, SLOT (clearContents ()));
+    bClear = new QPushButton(tr("Clear"));
+    inputBoxLayout->addWidget(bClear, 2, 1);
+    connect(bClear, SIGNAL(clicked()), this, SLOT(clearContents()));
 
 
-    outputBox = new QGroupBox (tr("Analysis report"));
-    outputBoxLayout = new QGridLayout (outputBox);
+    outputBox = new QGroupBox(tr("Analysis report"));
+    outputBoxLayout = new QGridLayout(outputBox);
 
     outputZone = new QTextEdit;
-    outputBoxLayout->addWidget (outputZone, 0, 0, 1, 2);
-    outputZone->setReadOnly (true);
+    outputBoxLayout->addWidget(outputZone, 0, 0, 1, 2);
+    outputZone->setReadOnly(true);
 
-    chooseSortingLabel = new QLabel (tr("Sort by :"));
-    outputBoxLayout->addWidget (chooseSortingLabel, 1, 0, 1, 1, Qt::AlignRight);
+    chooseSortingLabel = new QLabel(tr("Sort by :"));
+    outputBoxLayout->addWidget(chooseSortingLabel, 1, 0, 1, 1, Qt::AlignRight);
 
     sortingSelecter = new QComboBox;
-    sortingSelecter->addItem (tr("Alphabetical order"));
-    sortingSelecter->addItem (tr("Frequency (croissant)"));
-    sortingSelecter->addItem (tr("Frequency (decroissant)"));
-    outputBoxLayout->addWidget (sortingSelecter, 1, 1);
+    sortingSelecter->addItem(tr("Alphabetical order"));
+    sortingSelecter->addItem(tr("Frequency (croissant)"));
+    sortingSelecter->addItem(tr("Frequency (decroissant)"));
+    outputBoxLayout->addWidget(sortingSelecter, 1, 1);
 
 
-    layout->addWidget (inputBox);
-    layout->addWidget (outputBox);
+    layout->addWidget(inputBox);
+    layout->addWidget(outputBox);
 
 
-    loadOptions ();
+    loadOptions();
 }
 
 
 void AnalyzerWidget::loadOptions ()
 {
-    QFile settingsFile ("Analyzer Options.pastouche");
+    QFile settingsFile("Analyzer Options.pastouche");
 
-    if (settingsFile.open (QIODevice::ReadOnly | QIODevice::Text))
+    if (settingsFile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        QStringList data = QString (settingsFile.readAll ()).split ("\n");
+        QStringList data = QString(settingsFile.readAll()).split("\n");
 
 
-        analyzeSymbols->setChecked (data.at (0).toUShort ());
+        analyzeSymbols->setChecked(data.at(0).toUShort());
 
-        caseSensitive->setChecked (data.at (1).toUShort ());
+        caseSensitive->setChecked(data.at(1).toUShort());
 
-        sortingSelecter->setCurrentIndex (data.at (2).toUShort ());
+        sortingSelecter->setCurrentIndex(data.at(2).toUShort());
     }
     else
-        sortingSelecter->setCurrentIndex (2);
+        sortingSelecter->setCurrentIndex(2);
+
+
+    connect(sortingSelecter, SIGNAL(currentIndexChanged(int)), this, SLOT(analyzeText()));
 }
 
 AnalyzerWidget::~AnalyzerWidget ()
 {
-    std::ofstream settingsFile ("Analyzer Options.pastouche");
+    std::ofstream settingsFile("Analyzer Options.pastouche");
 
     if (settingsFile)
     {
-        settingsFile<<analyzeSymbols->isChecked ()<<"\n"
-                    <<caseSensitive->isChecked ()<<"\n"
-                    <<sortingSelecter->currentIndex ();
+        settingsFile<<analyzeSymbols->isChecked()<<"\n"
+                    <<caseSensitive->isChecked()<<"\n"
+                    <<sortingSelecter->currentIndex();
     }
 }
 
@@ -96,45 +101,45 @@ AnalyzerWidget::~AnalyzerWidget ()
 
 void AnalyzerWidget::analyzeText ()
 {
-    QString input = inputZone->toPlainText ().remove (" ").remove ("\t").remove ("\n");
+    QString input(inputZone->toPlainText().remove(" ").remove("\t").remove("\n"));
 
-    if (!inputZone->toPlainText ().isEmpty ())
+    if (!inputZone->toPlainText().isEmpty())
     {
-        outputZone->clear ();
+        outputZone->clear();
 
 
         QString dict;
 
-        if (!caseSensitive->isChecked ())
-            input = input.toUpper ();
+        if (!caseSensitive->isChecked())
+            input = input.toUpper();
 
 
-        if (analyzeSymbols->isChecked ())
+        if (analyzeSymbols->isChecked())
         {
-            for (int i = 0 ; i != input.length () ; i++)
+            for (int i = 0 ; i != input.length() ; i++)
             {
-                if (!dict.contains (input.at (i)))
-                    dict += input.at (i);
+                if (!dict.contains(input.at(i)))
+                    dict += input.at(i);
             }
         }
         else
         {
-            for (int i = 0 ; i != input.length () ; i++)
+            for (int i = 0 ; i != input.length() ; i++)
             {
-                if (input.at (i).isLetter () && !dict.contains (input.at (i)))
-                    dict += input.at (i);
+                if (input.at(i).isLetter() && !dict.contains(input.at(i)))
+                    dict += input.at(i);
             }
         }
 
-        displayAnalysisReport (input, dict);
+        displayAnalysisReport(input, dict);
     }
 }
 
 
 void AnalyzerWidget::clearContents ()
 {
-    inputZone->clear ();
-    outputZone->clear ();
+    inputZone->clear();
+    outputZone->clear();
 }
 
 
@@ -143,37 +148,37 @@ void AnalyzerWidget::clearContents ()
 
 void AnalyzerWidget::displayAnalysisReport (const QString& input, const QString& dict)
 {
-    QStringList splitDict (dict.split (""));
-    splitDict.sort ();
-    splitDict.removeAll ("");
+    QStringList splitDict(dict.split(""));
+    splitDict.sort();
+    splitDict.removeAll("");
 
 
-    if (sortingSelecter->currentText () == tr("Alphabetical order"))
+    if (sortingSelecter->currentText() == tr("Alphabetical order"))
     {
-        for (int i = 0 ; i != splitDict.length () ; i++)
-            outputZone->setText (outputZone->toPlainText () + QString::number (input.count (splitDict.at (i))) + tr(" occurrence(s) of character ") + splitDict.at (i) + "\n");
+        for (int i = 0 ; i != splitDict.length() ; i++)
+            outputZone->setText(outputZone->toPlainText() + QString::number(input.count(splitDict.at(i))) + tr(" occurrence(s) of character ") + splitDict.at(i) + "\n");
     }
     else
     {
-        if (sortingSelecter->currentText () == tr("Frequency (croissant)"))
-            splitDict = reverse (splitDict);
+        if (sortingSelecter->currentText() == tr("Frequency (croissant)"))
+            splitDict = reverse(splitDict);
 
         QStringList splitReport;
         unsigned int currentCharIndex;
 
-        while (!splitDict.isEmpty ())
+        while (!splitDict.isEmpty())
         {
-            currentCharIndex = mostFrequent (splitDict, input);
+            currentCharIndex = mostFrequent(splitDict, input);
 
-            splitReport += QString::number (input.count (splitDict.at (currentCharIndex))) + tr(" occurrence(s) of character ") + splitDict.at (currentCharIndex);
+            splitReport += QString::number(input.count(splitDict.at(currentCharIndex))) + tr(" occurrence(s) of character ") + splitDict.at(currentCharIndex);
 
-            splitDict.removeAt (currentCharIndex);
+            splitDict.removeAt(currentCharIndex);
         }
 
-        if (sortingSelecter->currentText () == tr("Frequency (croissant)"))
-            splitReport = reverse (splitReport);
+        if (sortingSelecter->currentText() == tr("Frequency (croissant)"))
+            splitReport = reverse(splitReport);
 
-        outputZone->setText (splitReport.join ("\n"));
+        outputZone->setText(splitReport.join("\n"));
     }
 }
 
@@ -183,15 +188,15 @@ void AnalyzerWidget::displayAnalysisReport (const QString& input, const QString&
 
 unsigned int AnalyzerWidget::mostFrequent (const QStringList& dict, const QString& input)
 {
-    QString mostFrequent = dict.at (0);
+    QString mostFrequent = dict.at(0);
 
-    for (int i = 1 ; i != dict.length () ; i++)
+    for (int i = 1 ; i != dict.length() ; i++)
     {
-        if (input.count (mostFrequent) < input.count (dict.at (i)))
-            mostFrequent = dict.at (i);
+        if (input.count(mostFrequent) < input.count(dict.at(i)))
+            mostFrequent = dict.at(i);
     }
 
-    return dict.indexOf (mostFrequent);
+    return dict.indexOf(mostFrequent);
 }
 
 
@@ -199,8 +204,8 @@ QStringList AnalyzerWidget::reverse (const QStringList& strList)
 {
     QStringList reversedStrList;
 
-    for (int i = strList.length () - 1 ; i != -1 ; i--)
-        reversedStrList.push_back (strList.at (i));
+    for (int i = strList.length() - 1 ; i != -1 ; i--)
+        reversedStrList.push_back(strList.at(i));
 
     return reversedStrList;
 }

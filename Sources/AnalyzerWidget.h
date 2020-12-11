@@ -17,22 +17,22 @@ class AnalyzerWidget : public QWidget
     Q_OBJECT
 
     public:
-        AnalyzerWidget ();
-        ~AnalyzerWidget ();
+        AnalyzerWidget();
+        ~AnalyzerWidget();
 
 
     private slots:
-        void analyzeText ();
-        void clearContents ();
+        void analyzeText();
+        void clearContents();
 
 
     private:
-        void loadOptions ();
+        void loadOptions();
 
-        void displayAnalysisReport (const QString&, const QString&);
+        void displayAnalysisReport(const QString&, const QString&);
 
-        unsigned int mostFrequent (const QStringList&, const QString&);
-        QStringList reverse (const QStringList&);
+        unsigned int mostFrequent(const QStringList&, const QString&);
+        QStringList reverse(const QStringList&);
 
 
         QHBoxLayout* layout;

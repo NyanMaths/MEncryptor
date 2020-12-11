@@ -10,43 +10,43 @@
 
 Application::Application () : QTabWidget ()
 {
-    QFontDatabase::addApplicationFont ("Ubuntu.ttf");
-    qApp->setFont (QFont ("Ubuntu", 12));
+    QFontDatabase::addApplicationFont("Ubuntu.ttf");
+    qApp->setFont(QFont("Ubuntu", 12));
 
 
-    std::string lang ("en");
+    std::string lang("en");
 
-    std::ifstream optionsFile ("UI Options.pastouche");
+    std::ifstream optionsFile("UI Options.pastouche");
     if (optionsFile)
-        getline (optionsFile, lang);
+        getline(optionsFile, lang);
 
     translator = new QTranslator;
-    translator->load ("mencryptor_" + QString::fromStdString (lang));
-    qApp->installTranslator (translator);
+    translator->load("mencryptor_" + QString::fromStdString(lang));
+    qApp->installTranslator(translator);
 
     messageBoxesTranslator = new QTranslator;
-    messageBoxesTranslator->load ("qtbase_" + QString::fromStdString (lang));
-    qApp->installTranslator (messageBoxesTranslator);
+    messageBoxesTranslator->load("qtbase_" + QString::fromStdString(lang));
+    qApp->installTranslator(messageBoxesTranslator);
 
 
     encryptorTab = new EncryptorWidget;
-    addTab (encryptorTab, tr("Encrypt/Decrypt"));
+    addTab(encryptorTab, tr("Encrypt/Decrypt"));
 
     analyzerTab = new AnalyzerWidget;
-    addTab (analyzerTab, tr("Frequency analyzer"));
+    addTab(analyzerTab, tr("Frequency analyzer"));
 
-    optionsTab = new OptionsWidget (encryptorTab);
-    addTab (optionsTab, tr("Help and settings"));
-
-
-    setWindowIcon (QIcon ("Window Icon.png"));
+    optionsTab = new OptionsWidget(encryptorTab);
+    addTab(optionsTab, tr("Help and settings"));
 
 
-    show ();
+    setWindowIcon(QIcon("Window Icon.png"));
 
-    QSize screenSize = QGuiApplication::screens().at (0)->size ();
-    move (screenSize.width () / 2 - width () / 2, screenSize.height () / 2 - height () / 2);
 
-    setFixedSize (size ());
+    show();
+
+    QSize screenSize(QGuiApplication::screens().at(0)->size());
+    move(screenSize.width() / 2 - width() / 2, screenSize.height() / 2 - height() / 2);
+
+    setFixedSize(size());
 }
 

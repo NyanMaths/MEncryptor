@@ -17,7 +17,7 @@ class Application : public QTabWidget
     Q_OBJECT
 
     public:
-        Application ();
+        Application();
 
 
     private:

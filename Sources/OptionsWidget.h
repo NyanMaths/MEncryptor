@@ -17,19 +17,21 @@ class OptionsWidget : public QWidget
     Q_OBJECT
 
     public:
-        OptionsWidget (EncryptorWidget*);
-        ~OptionsWidget ();
+        OptionsWidget(EncryptorWidget*);
+        ~OptionsWidget();
 
 
     private slots:
-        void changeLanguage ();
-        void changeTheme (int);
+        void changeLanguage();
+        void changeTheme(int);
+
+        void uninstall();
 
 
     private:
-        void initPalettes ();
+        void initPalettes();
 
-        void loadOptions ();
+        void loadOptions();
 
 
         QPalette lightPalette;
@@ -41,6 +43,8 @@ class OptionsWidget : public QWidget
         QGridLayout* layout;
 
         QLabel* aboutMEncryptorLabel;
+
+        QPushButton* uninstallButton;
 
         QGroupBox* UIOptionsBox;
         QGridLayout* UIOptionsBoxLayout;
