@@ -1,5 +1,6 @@
 #include <QGuiApplication>
 #include <QApplication>
+#include <QDesktopServices>
 #include <fstream>
 #include <QFile>
 #include <QScreen>
@@ -40,12 +41,15 @@ EncryptorWidget::EncryptorWidget () : QWidget ()
 
     bDisplayOutput = new QPushButton(tr("Translate now !"));
     bSaveOutput = new QPushButton(tr("Save translated message as..."));
+    bMailOutput = new QPushButton(tr("Email translated message"));
 
     connect(bSaveOutput, SIGNAL(clicked()), this, SLOT(startProcessAndSave()));
     connect(bDisplayOutput, SIGNAL(clicked()), this, SLOT(startProcessAndDisplay()));
+    connect(bMailOutput, SIGNAL(clicked()), this, SLOT(startProcessAndMailto()));
 
     outputBoxLayout->addWidget(bDisplayOutput);
     outputBoxLayout->addWidget(bSaveOutput);
+    outputBoxLayout->addWidget(bMailOutput);
 
 
     layout->addWidget(inputBox);
@@ -194,14 +198,18 @@ void EncryptorWidget::updateOptionsImage (QString color)
 
 void EncryptorWidget::startProcessAndDisplay ()
 {
-    chooseProcess(false);
+    chooseProcess(0);  // Output will be displayed
 }
 void EncryptorWidget::startProcessAndSave ()
 {
-    chooseProcess(true);
+    chooseProcess(1);  // Output will be saved
+}
+void EncryptorWidget::startProcessAndMailto ()
+{
+    chooseProcess(2);  // Output will be sent by email
 }
 
-void EncryptorWidget::chooseProcess (bool save)
+void EncryptorWidget::chooseProcess (quint8 whatToDo)
 {
     if (!inputZone->toPlainText().isEmpty())
     {
@@ -221,10 +229,10 @@ void EncryptorWidget::chooseProcess (bool save)
             errorCode = protocolCallBack_2(encrypt, selectedProtocol);
 
 
-        if (errorCode == 42) { /* Operation cancelled */ }
+        if (errorCode == 42) { /* Operation cancelled, there is nothing to do */ }
 
-        else if (errorCode == 0)  // If operation is successful
-            outputHandling(save);
+        else if (errorCode == 0)  // Operation is successful, we just have to display or save the output
+            outputHandling(whatToDo);
 
         else
             QMessageBox::critical(this, tr("Runtime error #") + QString::number(errorCode), errors.at(errorCode - 1));
@@ -334,21 +342,9 @@ unsigned short int EncryptorWidget::protocolCallBack_2 (bool encrypt, unsigned i
 }
 
 
-void EncryptorWidget::outputHandling (bool save)
+void EncryptorWidget::outputHandling (quint8 whatToDo)
 {
-    if (save)
-    {
-        QString destFileName(QFileDialog::getSaveFileName(this, tr("Save translated file as..."), tr("Untitled.txt"), "", nullptr, QFileDialog::DontUseNativeDialog));
-
-        std::ofstream destFile(destFileName.toStdString());
-
-        if (destFileName != "")
-        {
-            destFile<<encryptorOutput.toStdString();
-            QMessageBox::information(this, tr("Operation successful, Houston !"), tr("File ") + destFileName + tr(" saved !"));
-        }
-    }
-    else
+    if (whatToDo == 0)  // Output will be displayed
     {
         QDialog outputPopup(this);
         outputPopup.setModal(true);
@@ -366,6 +362,20 @@ void EncryptorWidget::outputHandling (bool save)
 
         outputPopup.exec();
     }
+    else if (whatToDo == 1)  // Output will be saved
+    {
+        QString destFileName(QFileDialog::getSaveFileName(this, tr("Save translated file as..."), tr("Untitled.txt"), "", nullptr, QFileDialog::DontUseNativeDialog));
+
+        std::ofstream destFile(destFileName.toStdString());
+
+        if (destFileName != "")
+        {
+            destFile<<encryptorOutput.toStdString();
+            QMessageBox::information(this, tr("Operation successful, Houston !"), tr("File ") + destFileName + tr(" saved !"));
+        }
+    }
+    else  // Output will be sent by email
+        QDesktopServices::openUrl(QUrl("mailto:someone@mail.com?body=" + QUrl::toPercentEncoding(encryptorOutput)));
 }
 
 
@@ -427,12 +437,20 @@ unsigned short int EncryptorWidget::d_LeetSpeak ()
 
 unsigned short int EncryptorWidget::reversedWords ()
 {
-    QStringList words(encryptorOutput.split(" "));
+    QStringList lines(encryptorOutput.split("\n"));
+    QStringList words;
 
-    for (int i = 0 ; i != words.length() ; i++)
-        words[i] = reverse(words.at(i));
+    for (int i = 0 ; i != lines.length() ; i++)
+    {
+        words = lines[i].split(" ");
 
-    encryptorOutput = words.join(" ");
+        for (int wordsIndex = 0 ; wordsIndex != words.length() ; wordsIndex++)
+            words[wordsIndex] = reverse(words.at(wordsIndex));
+
+        lines[i] = words.join(" ");
+    }
+
+    encryptorOutput = lines.join("\n");
 
     return 0;
 }
@@ -580,7 +598,10 @@ unsigned short int EncryptorWidget::e_Shift ()
     if (ok)
     {
         for (int i = 0 ; i != encryptorOutput.length() ; i++)
-            encryptorOutput[i] = dict.at((dict.indexOf(encryptorOutput.at(i)) + 2 * shift) % dict.length());
+        {
+            if (dict.contains(encryptorOutput.at(i)))
+                encryptorOutput[i] = dict.at((dict.indexOf(encryptorOutput.at(i)) + 2 * shift) % dict.length());
+        }
     }
     else
         return 42;
@@ -600,15 +621,18 @@ unsigned short int EncryptorWidget::d_Shift ()
     {
         for (int i = 0 ; i != encryptorOutput.length() ; i++)
         {
-            int dictIndex = dict.indexOf(encryptorOutput.at(i));
-
-            if (dictIndex != -1)
+            if (dict.contains(encryptorOutput.at(i)))
             {
-                if (dictIndex - 2 * shift < 0)
-                    encryptorOutput[i] = dict.at(dictIndex - 2 * shift + dict.length());
+                int dictIndex = dict.indexOf(encryptorOutput.at(i));
 
-                else
-                    encryptorOutput[i] = dict.at(dictIndex - 2 * shift);
+                if (dictIndex != -1)
+                {
+                    if (dictIndex - 2 * shift < 0)
+                        encryptorOutput[i] = dict.at(dictIndex - 2 * shift + dict.length());
+
+                    else
+                        encryptorOutput[i] = dict.at(dictIndex - 2 * shift);
+                }
             }
         }
     }
